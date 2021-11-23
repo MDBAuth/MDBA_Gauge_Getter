@@ -1,4 +1,4 @@
-# Gague Getter
+#MDBA Gague Getter
 
 <span class="badges">
 
@@ -11,7 +11,7 @@
 </span>
 
 ## Description
-Gague getter provides a unified and simple interface to the following state water portals:
+MDBA Gague getter provides a unified and simple interface to the following state water portals:
 
 
 |State|Site|Source|
