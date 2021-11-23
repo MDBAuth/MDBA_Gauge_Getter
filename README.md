@@ -21,7 +21,7 @@ MDBA Gague getter provides a unified and simple interface to the following state
 | VIC | data.water.vic.gov.au |AT|
 
 The tool is configured to abstract away the details specific to each state water poral and return a consistent structure. 
-By default it will return a daily mean of a flow in Ml/day for a given gauge number, but level and other intervals and aggregations are available
+By default it will return a daily mean of a flow in ML/day for a given gauge number, but level and other intervals and aggregations are available
 
 
 Example of its use can be seen in Gauge_getter_example.ipynb notebook, contact ben.bradshaw@mdba.gov.au for more details.
