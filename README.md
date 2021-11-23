@@ -81,9 +81,3 @@ execute `PYTHONPATH="./" pytest-3 --cov=mdba_gauge_getter --cov-report term-miss
 The reason we set the `PYTHONPATH` environment variable is to force pytest to
 load the local directory, rather than any other version that is installed on the computer. 
 
-# CI
-
-The script `ci.py` has been built with the intent of being used in Continuous Integration - it
-executes tests and patches this README.txt file. It could be plugged into a CI engine such as
-Azure DevOps Pipelines or GitHub Actions - from there it could be explicitly configured to reject
-commits which fail some metrics (such as failing unit tests, or reduced code coverage).
