@@ -26,19 +26,6 @@ By default it will return a daily mean of a flow in ML/day for a given gauge num
 
 Example of its use can be seen in Gauge_getter_example.ipynb notebook, contact ben.bradshaw@mdba.gov.au for more details.
 
-
-# Setup / Packaging 
-
-The module has been packaged using `setuptools` -
-https://setuptools.readthedocs.io/en/latest/userguide/index.html
-
-To install from source, run `python3 setuptools.py install`
-
-To build a redistributable package (for upload to pip, or a locally managed software repository) use
-`python3 setup.py build`. Pip doesn't respect `requirements.txt` so the setup will need to have
-install_requires - https://packaging.python.org/discussions/install-requires-vs-requirements/ .
-
-
 ## Installation
 
 - Install dependencies with `pip3 install -r requirements.txt`
