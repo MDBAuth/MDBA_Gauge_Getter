@@ -32,4 +32,6 @@ Example of its use can be seen in Gauge_getter_example.ipynb notebook, contact b
 - (Optionally) install dev dependencies with `pip3 install -r requirements-dev.txt`
 - Run `python3 setup.py install` to install the module
 
-Support For issues relating to the script, a tutorial, or feedback please contact Ben Bradshaw ben.bradshaw@mdba.gov.au
+## Support 
+For issues relating to the script, a tutorial, or feedback please contact Ben Bradshaw ben.bradshaw@mdba.gov.au
+For data issues please see the corresponding state water portals
