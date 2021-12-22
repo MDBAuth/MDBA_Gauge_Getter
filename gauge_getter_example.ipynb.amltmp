@@ -370,16 +370,33 @@
       }
     },
     {
+      "cell_type": "markdown",
+      "source": [
+        "To use bom_water to return data in the same format see below"
+      ],
+      "metadata": {
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        }
+      }
+    },
+    {
       "cell_type": "code",
       "source": [
         "from typing import Tuple, List, Dict, TypeVar, Set, Optional, Any\r\n",
+        "import bom_water\r\n",
         "import requests\r\n",
         "import pandas as pd\r\n",
+        "\r\n",
         "import datetime\r\n",
         "\r\n",
-        "def fixdate(date):\r\n",
-        "    date =datetime.strptime(date, '%Y-%m-%dT%H:%M:%S')\r\n",
-        "    date\r\n",
+        "def fixdate(timestamp):\r\n",
+        "    date = timestamp.to_pydatetime()\r\n",
+        "    date = date.date()\r\n",
+        "    #datetime.astimzone('Australia/Sydney',date) #date.tz_localize('Australia/Sydney')   #datetime.datetime.strptime(date, '%Y-%m-%dT%H:%M:%S')\r\n",
+        "    return date\r\n",
         "\r\n",
         "def gauge_pull_bom(gauge_numbers: List[str], start_time_user: datetime.date, end_time_user: datetime.date,\r\n",
         "               var: str = 'F',\r\n",
@@ -402,7 +419,7 @@
         "\r\n",
         "    # t_begin = \"1800-01-01T00:00:00+10\"\r\n",
         "    # t_end = \"2030-12-31T00:00:00+10\"\r\n",
-        "    \r\n",
+        "    collect=[]\r\n",
         "    for gauge in gauge_numbers:\r\n",
         "        \r\n",
         "        response = bm.request(bm.actions.GetObservation, gauge, prop, procedure, t_begin, t_end)\r\n",
@@ -410,16 +427,22 @@
         "        response_json = bm.xml_to_json(response.text)  \r\n",
         "        ts = bm.parse_get_data(response)\r\n",
         "        \r\n",
-        "        #move to format DATASOURCEID\tSITEID\tSUBJECTID\tDATETIME\tVALUE\tQUALITYCODE\r\n",
+        "        # move to format DATASOURCEID\tSITEID\tSUBJECTID\tDATETIME\tVALUE\tQUALITYCODE\r\n",
         "        ts[\"DATASOURCEID\"] = \"BOM\"\r\n",
         "        ts[\"SITEID\"] = gauge\r\n",
         "        ts[\"SUBJECTID\"] = \"WATER\"\r\n",
-        "        ts[\"DATETIME\"] = ts[\"Timestamp[UTC]\"]\r\n",
-        "    \r\n",
-        "    return ts\r\n"
+        "        ts[\"DATETIME\"] = ts.index.to_pydatetime()\r\n",
+        "        ts[\"DATETIME\"] = pd.to_datetime(ts[\"DATETIME\"])\r\n",
+        "        ts[\"DATETIME\"] = ts[\"DATETIME\"].apply(fixdate)\r\n",
+        "        ts[\"VALUE\"] = ts[\"Value[cumec]\"]\r\n",
+        "        ts[\"QUALITYCODE\"] = ts[\"Quality\"]\r\n",
+        "\r\n",
+        "        collect.append(ts[[\"DATASOURCEID\",\"SITEID\",\t\"SUBJECTID\", \"DATETIME\", \"VALUE\", \"QUALITYCODE\"]])\r\n",
+        "\r\n",
+        "    return pd.concat(collect)\r\n"
       ],
       "outputs": [],
-      "execution_count": 23,
+      "execution_count": 96,
       "metadata": {
         "jupyter": {
           "source_hidden": false,
@@ -431,27 +454,27 @@
           }
         },
         "gather": {
-          "logged": 1640064637823
+          "logged": 1640152204523
         }
       }
     },
     {
       "cell_type": "code",
       "source": [
-        "gauge_pull_bom([\"410777\"], start_time_user = datetime.date(2021, 1, 1), end_time_user= datetime.date(2021, 11, 4), var='F' )\r\n"
+        "gauge_pull_bom([\"410777\", \"412189\"], start_time_user = datetime.date(2021, 1, 1), end_time_user= datetime.date(2021, 11, 4), var='F' )\r\n"
       ],
       "outputs": [
         {
           "output_type": "execute_result",
-          "execution_count": 24,
+          "execution_count": 98,
           "data": {
-            "text/plain": "                     Value[cumec]  Quality Interpolation\nTimestamp[UTC]                                          \n2020-12-31 14:00:00           NaN       -1     ConstSucc\n2021-01-01 14:00:00           NaN       -1     ConstSucc\n2021-01-02 14:00:00         5.902      140     ConstSucc\n2021-01-03 14:00:00           NaN       -1     ConstSucc\n2021-01-04 14:00:00           NaN       -1     ConstSucc\n...                           ...      ...           ...\n2021-10-30 14:00:00        27.080       -1     ConstSucc\n2021-10-31 14:00:00        27.462       -1     ConstSucc\n2021-11-01 14:00:00        24.712       -1     ConstSucc\n2021-11-02 14:00:00        23.135       -1     ConstSucc\n2021-11-03 14:00:00        39.748       -1     ConstSucc\n\n[616 rows x 3 columns]",
-            "text/html": "<div>\n<style scoped>\n    .dataframe tbody tr th:only-of-type {\n        vertical-align: middle;\n    }\n\n    .dataframe tbody tr th {\n        vertical-align: top;\n    }\n\n    .dataframe thead th {\n        text-align: right;\n    }\n</style>\n<table border=\"1\" class=\"dataframe\">\n  <thead>\n    <tr style=\"text-align: right;\">\n      <th></th>\n      <th>Value[cumec]</th>\n      <th>Quality</th>\n      <th>Interpolation</th>\n    </tr>\n    <tr>\n      <th>Timestamp[UTC]</th>\n      <th></th>\n      <th></th>\n      <th></th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th>2020-12-31 14:00:00</th>\n      <td>NaN</td>\n      <td>-1</td>\n      <td>ConstSucc</td>\n    </tr>\n    <tr>\n      <th>2021-01-01 14:00:00</th>\n      <td>NaN</td>\n      <td>-1</td>\n      <td>ConstSucc</td>\n    </tr>\n    <tr>\n      <th>2021-01-02 14:00:00</th>\n      <td>5.902</td>\n      <td>140</td>\n      <td>ConstSucc</td>\n    </tr>\n    <tr>\n      <th>2021-01-03 14:00:00</th>\n      <td>NaN</td>\n      <td>-1</td>\n      <td>ConstSucc</td>\n    </tr>\n    <tr>\n      <th>2021-01-04 14:00:00</th>\n      <td>NaN</td>\n      <td>-1</td>\n      <td>ConstSucc</td>\n    </tr>\n    <tr>\n      <th>...</th>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n    </tr>\n    <tr>\n      <th>2021-10-30 14:00:00</th>\n      <td>27.080</td>\n      <td>-1</td>\n      <td>ConstSucc</td>\n    </tr>\n    <tr>\n      <th>2021-10-31 14:00:00</th>\n      <td>27.462</td>\n      <td>-1</td>\n      <td>ConstSucc</td>\n    </tr>\n    <tr>\n      <th>2021-11-01 14:00:00</th>\n      <td>24.712</td>\n      <td>-1</td>\n      <td>ConstSucc</td>\n    </tr>\n    <tr>\n      <th>2021-11-02 14:00:00</th>\n      <td>23.135</td>\n      <td>-1</td>\n      <td>ConstSucc</td>\n    </tr>\n    <tr>\n      <th>2021-11-03 14:00:00</th>\n      <td>39.748</td>\n      <td>-1</td>\n      <td>ConstSucc</td>\n    </tr>\n  </tbody>\n</table>\n<p>616 rows × 3 columns</p>\n</div>"
+            "text/plain": "                    DATASOURCEID  SITEID SUBJECTID    DATETIME  VALUE  \\\nTimestamp[UTC]                                                          \n2020-12-31 14:00:00          BOM  410777     WATER  2020-12-31    NaN   \n2021-01-01 14:00:00          BOM  410777     WATER  2021-01-01    NaN   \n2021-01-02 14:00:00          BOM  410777     WATER  2021-01-02  5.902   \n2021-01-03 14:00:00          BOM  410777     WATER  2021-01-03    NaN   \n2021-01-04 14:00:00          BOM  410777     WATER  2021-01-04    NaN   \n...                          ...     ...       ...         ...    ...   \n2021-10-30 14:00:00          BOM  412189     WATER  2021-10-30  4.639   \n2021-10-31 14:00:00          BOM  412189     WATER  2021-10-31  4.529   \n2021-11-01 14:00:00          BOM  412189     WATER  2021-11-01  4.385   \n2021-11-02 14:00:00          BOM  412189     WATER  2021-11-02  4.249   \n2021-11-03 14:00:00          BOM  412189     WATER  2021-11-03  4.151   \n\n                     QUALITYCODE  \nTimestamp[UTC]                    \n2020-12-31 14:00:00           -1  \n2021-01-01 14:00:00           -1  \n2021-01-02 14:00:00          140  \n2021-01-03 14:00:00           -1  \n2021-01-04 14:00:00           -1  \n...                          ...  \n2021-10-30 14:00:00          140  \n2021-10-31 14:00:00          140  \n2021-11-01 14:00:00          140  \n2021-11-02 14:00:00          140  \n2021-11-03 14:00:00          140  \n\n[924 rows x 6 columns]",
+            "text/html": "<div>\n<style scoped>\n    .dataframe tbody tr th:only-of-type {\n        vertical-align: middle;\n    }\n\n    .dataframe tbody tr th {\n        vertical-align: top;\n    }\n\n    .dataframe thead th {\n        text-align: right;\n    }\n</style>\n<table border=\"1\" class=\"dataframe\">\n  <thead>\n    <tr style=\"text-align: right;\">\n      <th></th>\n      <th>DATASOURCEID</th>\n      <th>SITEID</th>\n      <th>SUBJECTID</th>\n      <th>DATETIME</th>\n      <th>VALUE</th>\n      <th>QUALITYCODE</th>\n    </tr>\n    <tr>\n      <th>Timestamp[UTC]</th>\n      <th></th>\n      <th></th>\n      <th></th>\n      <th></th>\n      <th></th>\n      <th></th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th>2020-12-31 14:00:00</th>\n      <td>BOM</td>\n      <td>410777</td>\n      <td>WATER</td>\n      <td>2020-12-31</td>\n      <td>NaN</td>\n      <td>-1</td>\n    </tr>\n    <tr>\n      <th>2021-01-01 14:00:00</th>\n      <td>BOM</td>\n      <td>410777</td>\n      <td>WATER</td>\n      <td>2021-01-01</td>\n      <td>NaN</td>\n      <td>-1</td>\n    </tr>\n    <tr>\n      <th>2021-01-02 14:00:00</th>\n      <td>BOM</td>\n      <td>410777</td>\n      <td>WATER</td>\n      <td>2021-01-02</td>\n      <td>5.902</td>\n      <td>140</td>\n    </tr>\n    <tr>\n      <th>2021-01-03 14:00:00</th>\n      <td>BOM</td>\n      <td>410777</td>\n      <td>WATER</td>\n      <td>2021-01-03</td>\n      <td>NaN</td>\n      <td>-1</td>\n    </tr>\n    <tr>\n      <th>2021-01-04 14:00:00</th>\n      <td>BOM</td>\n      <td>410777</td>\n      <td>WATER</td>\n      <td>2021-01-04</td>\n      <td>NaN</td>\n      <td>-1</td>\n    </tr>\n    <tr>\n      <th>...</th>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n    </tr>\n    <tr>\n      <th>2021-10-30 14:00:00</th>\n      <td>BOM</td>\n      <td>412189</td>\n      <td>WATER</td>\n      <td>2021-10-30</td>\n      <td>4.639</td>\n      <td>140</td>\n    </tr>\n    <tr>\n      <th>2021-10-31 14:00:00</th>\n      <td>BOM</td>\n      <td>412189</td>\n      <td>WATER</td>\n      <td>2021-10-31</td>\n      <td>4.529</td>\n      <td>140</td>\n    </tr>\n    <tr>\n      <th>2021-11-01 14:00:00</th>\n      <td>BOM</td>\n      <td>412189</td>\n      <td>WATER</td>\n      <td>2021-11-01</td>\n      <td>4.385</td>\n      <td>140</td>\n    </tr>\n    <tr>\n      <th>2021-11-02 14:00:00</th>\n      <td>BOM</td>\n      <td>412189</td>\n      <td>WATER</td>\n      <td>2021-11-02</td>\n      <td>4.249</td>\n      <td>140</td>\n    </tr>\n    <tr>\n      <th>2021-11-03 14:00:00</th>\n      <td>BOM</td>\n      <td>412189</td>\n      <td>WATER</td>\n      <td>2021-11-03</td>\n      <td>4.151</td>\n      <td>140</td>\n    </tr>\n  </tbody>\n</table>\n<p>924 rows × 6 columns</p>\n</div>"
           },
           "metadata": {}
         }
       ],
-      "execution_count": 24,
+      "execution_count": 98,
       "metadata": {
         "jupyter": {
           "source_hidden": false,
@@ -463,78 +486,7 @@
           }
         },
         "gather": {
-          "logged": 1640064642607
-        }
-      }
-    },
-    {
-      "cell_type": "code",
-      "source": [
-        "import bom_water\r\n",
-        "help(bom_water.bom_water)"
-      ],
-      "outputs": [
-        {
-          "output_type": "stream",
-          "name": "stdout",
-          "text": "Help on module bom_water.bom_water in bom_water:\n\nNAME\n    bom_water.bom_water\n\nCLASSES\n    builtins.object\n        Action\n        BomWater\n        Builder_Property\n            Feature\n            Procedure\n            Property\n    \n    class Action(builtins.object)\n     |  Methods defined here:\n     |  \n     |  __init__(self)\n     |      Initialize self.  See help(type(self)) for accurate signature.\n     |  \n     |  ----------------------------------------------------------------------\n     |  Data descriptors defined here:\n     |  \n     |  __dict__\n     |      dictionary for instance variables (if defined)\n     |  \n     |  __weakref__\n     |      list of weak references to the object (if defined)\n     |  \n     |  ----------------------------------------------------------------------\n     |  Data and other attributes defined here:\n     |  \n     |  GetCapabilities = 'http://www.bom.gov.au/waterdata/services?service=SO...\n     |  \n     |  GetDataAvailability = 'http://www.opengis.net/def/serviceOperation/sos...\n     |  \n     |  GetFeatureOfInterest = 'http://www.opengis.net/def/serviceOperation/so...\n     |  \n     |  GetObservation = 'http://www.opengis.net/def/serviceOperation/sos/core...\n    \n    class BomWater(builtins.object)\n     |  Methods defined here:\n     |  \n     |  __init__(self)\n     |      Initialize self.  See help(type(self)) for accurate signature.\n     |  \n     |  body(self, action, feature, prop, proced, begin, end, lower_corner, upper_corner)\n     |  \n     |  bom_url_KVP_builder(self, action, query)\n     |      KVP URL builder\n     |  \n     |  build_payload(self, action, feature=None, prop=None, proced=None, begin=None, end=None, lower_corner=None, upper_corner=None)\n     |      Payload builder\n     |      \n     |      Note that only action is required.\n     |      \n     |      However if you need another arg you still need to keep the correct order.\n     |      eg water_ml_builder( GetAction, None, 'Water Course Level', None)\n     |  \n     |  check_cache_status(self)\n     |  \n     |  create_feature_list(self, bom_response_foi, path)\n     |      This is used to create a feature list for reuse\n     |  \n     |  envelope_head(self)\n     |  \n     |  envelope_tail(self)\n     |  \n     |  feature_of_interest(self, station_id)\n     |  \n     |  header_action(self, action)\n     |  \n     |  init_properties(self)\n     |  \n     |  observed_property(self, prop)\n     |  \n     |  parse_get_data(self, response, raw=False)\n     |  \n     |  procedure(self, proc)\n     |  \n     |  request(self, action, feature=None, prop=None, proced=None, begin=None, end=None, lower_corner=None, upper_corner=None)\n     |  \n     |  spatial(self, action, lower_corner, upper_corner)\n     |  \n     |  temp_filter(self, begin, end)\n     |  \n     |  xml(self)\n     |      XML payload builder\n     |  \n     |  xml_to_json(self, xml_text)\n     |  \n     |  xml_to_json_via_file(self, xml_text, file)\n     |  \n     |  ----------------------------------------------------------------------\n     |  Data descriptors defined here:\n     |  \n     |  __dict__\n     |      dictionary for instance variables (if defined)\n     |  \n     |  __weakref__\n     |      list of weak references to the object (if defined)\n    \n    class Builder_Property(builtins.object)\n     |  Methods defined here:\n     |  \n     |  __init__(self)\n     |      Initialize self.  See help(type(self)) for accurate signature.\n     |  \n     |  set_value(self, varname, value)\n     |  \n     |  ----------------------------------------------------------------------\n     |  Data descriptors defined here:\n     |  \n     |  __dict__\n     |      dictionary for instance variables (if defined)\n     |  \n     |  __weakref__\n     |      list of weak references to the object (if defined)\n    \n    class Feature(Builder_Property)\n     |  Method resolution order:\n     |      Feature\n     |      Builder_Property\n     |      builtins.object\n     |  \n     |  Methods defined here:\n     |  \n     |  __init__(self)\n     |      Initialize self.  See help(type(self)) for accurate signature.\n     |  \n     |  ----------------------------------------------------------------------\n     |  Methods inherited from Builder_Property:\n     |  \n     |  set_value(self, varname, value)\n     |  \n     |  ----------------------------------------------------------------------\n     |  Data descriptors inherited from Builder_Property:\n     |  \n     |  __dict__\n     |      dictionary for instance variables (if defined)\n     |  \n     |  __weakref__\n     |      list of weak references to the object (if defined)\n    \n    class Procedure(Builder_Property)\n     |  Method resolution order:\n     |      Procedure\n     |      Builder_Property\n     |      builtins.object\n     |  \n     |  Methods defined here:\n     |  \n     |  __init__(self)\n     |      Initialize self.  See help(type(self)) for accurate signature.\n     |  \n     |  ----------------------------------------------------------------------\n     |  Methods inherited from Builder_Property:\n     |  \n     |  set_value(self, varname, value)\n     |  \n     |  ----------------------------------------------------------------------\n     |  Data descriptors inherited from Builder_Property:\n     |  \n     |  __dict__\n     |      dictionary for instance variables (if defined)\n     |  \n     |  __weakref__\n     |      list of weak references to the object (if defined)\n    \n    class Property(Builder_Property)\n     |  Method resolution order:\n     |      Property\n     |      Builder_Property\n     |      builtins.object\n     |  \n     |  Methods defined here:\n     |  \n     |  __init__(self)\n     |      Initialize self.  See help(type(self)) for accurate signature.\n     |  \n     |  set_value(self, varname, value)\n     |  \n     |  ----------------------------------------------------------------------\n     |  Data descriptors inherited from Builder_Property:\n     |  \n     |  __dict__\n     |      dictionary for instance variables (if defined)\n     |  \n     |  __weakref__\n     |      list of weak references to the object (if defined)\n\nFILE\n    /anaconda/envs/azureml_py36/lib/python3.6/site-packages/bom_water/bom_water.py\n\n\n"
-        }
-      ],
-      "execution_count": 7,
-      "metadata": {
-        "jupyter": {
-          "source_hidden": false,
-          "outputs_hidden": false
-        },
-        "nteract": {
-          "transient": {
-            "deleting": false
-          }
-        },
-        "gather": {
-          "logged": 1640058308086
-        }
-      }
-    },
-    {
-      "cell_type": "code",
-      "source": [
-        "bm = bom_water.BomWater()\r\n",
-        "procedure = bm.procedures.Pat4_C_B_1_DailyMean\r\n",
-        "prop = bm.properties.Water_Course_Discharge\r\n",
-        "\r\n",
-        "t_begin = \"1800-01-01T00:00:00+10\"\r\n",
-        "t_end = \"2030-12-31T00:00:00+10\"\r\n",
-        "response = bm.request(bm.actions.GetObservation, [\"410777\",\"410160\"], prop, procedure, t_begin, t_end)\r\n",
-        "\r\n",
-        "response_json = bm.xml_to_json(response.text)  \r\n",
-        "ts = bm.parse_get_data(response)\r\n",
-        "ts"
-      ],
-      "outputs": [
-        {
-          "output_type": "execute_result",
-          "execution_count": 10,
-          "data": {
-            "text/plain": "Empty DataFrame\nColumns: [Value[], Quality, Interpolation]\nIndex: []",
-            "text/html": "<div>\n<style scoped>\n    .dataframe tbody tr th:only-of-type {\n        vertical-align: middle;\n    }\n\n    .dataframe tbody tr th {\n        vertical-align: top;\n    }\n\n    .dataframe thead th {\n        text-align: right;\n    }\n</style>\n<table border=\"1\" class=\"dataframe\">\n  <thead>\n    <tr style=\"text-align: right;\">\n      <th></th>\n      <th>Value[]</th>\n      <th>Quality</th>\n      <th>Interpolation</th>\n    </tr>\n    <tr>\n      <th>Timestamp[UTC]</th>\n      <th></th>\n      <th></th>\n      <th></th>\n    </tr>\n  </thead>\n  <tbody>\n  </tbody>\n</table>\n</div>"
-          },
-          "metadata": {}
-        }
-      ],
-      "execution_count": 10,
-      "metadata": {
-        "jupyter": {
-          "source_hidden": false,
-          "outputs_hidden": false
-        },
-        "nteract": {
-          "transient": {
-            "deleting": false
-          }
-        },
-        "gather": {
-          "logged": 1640059082384
+          "logged": 1640152303941
         }
       }
     },
