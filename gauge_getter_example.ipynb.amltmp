@@ -9,10 +9,10 @@
         {
           "output_type": "stream",
           "name": "stdout",
-          "text": "Requirement already satisfied: requests in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from -r requirements.txt (line 1)) (2.25.1)\nRequirement already satisfied: pandas in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from -r requirements.txt (line 2)) (0.25.3)\nCollecting bomwater\n  Downloading bomwater-0.0.8-py3-none-any.whl (10 kB)\nRequirement already satisfied: certifi>=2017.4.17 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from requests->-r requirements.txt (line 1)) (2021.5.30)\nRequirement already satisfied: idna<3,>=2.5 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from requests->-r requirements.txt (line 1)) (2.10)\nRequirement already satisfied: urllib3<1.27,>=1.21.1 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from requests->-r requirements.txt (line 1)) (1.25.11)\nRequirement already satisfied: chardet<5,>=3.0.2 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from requests->-r requirements.txt (line 1)) (4.0.0)\nRequirement already satisfied: python-dateutil>=2.6.1 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from pandas->-r requirements.txt (line 2)) (2.8.1)\nRequirement already satisfied: pytz>=2017.2 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from pandas->-r requirements.txt (line 2)) (2021.1)\nRequirement already satisfied: numpy>=1.13.3 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from pandas->-r requirements.txt (line 2)) (1.18.5)\nRequirement already satisfied: xmltodict in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from bomwater->-r requirements.txt (line 3)) (0.12.0)\nCollecting geojson\n  Downloading geojson-2.5.0-py2.py3-none-any.whl (14 kB)\nCollecting shapely\n  Downloading Shapely-1.8.0-cp36-cp36m-manylinux_2_5_x86_64.manylinux1_x86_64.whl (1.1 MB)\n\u001b[K     |████████████████████████████████| 1.1 MB 37.5 MB/s eta 0:00:01\n\u001b[?25hRequirement already satisfied: json5 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from bomwater->-r requirements.txt (line 3)) (0.9.6)\nCollecting iso8601\n  Downloading iso8601-1.0.2-py3-none-any.whl (9.7 kB)\nRequirement already satisfied: six>=1.5 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from python-dateutil>=2.6.1->pandas->-r requirements.txt (line 2)) (1.16.0)\nInstalling collected packages: geojson, shapely, iso8601, bomwater\nSuccessfully installed bomwater-0.0.8 geojson-2.5.0 iso8601-1.0.2 shapely-1.8.0\n"
+          "text": "Requirement already satisfied: requests in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from -r requirements.txt (line 1)) (2.25.1)\nRequirement already satisfied: pandas in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from -r requirements.txt (line 2)) (0.25.3)\nRequirement already satisfied: bomwater in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from -r requirements.txt (line 3)) (0.0.8)\nRequirement already satisfied: certifi>=2017.4.17 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from requests->-r requirements.txt (line 1)) (2021.5.30)\nRequirement already satisfied: urllib3<1.27,>=1.21.1 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from requests->-r requirements.txt (line 1)) (1.25.11)\nRequirement already satisfied: chardet<5,>=3.0.2 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from requests->-r requirements.txt (line 1)) (4.0.0)\nRequirement already satisfied: idna<3,>=2.5 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from requests->-r requirements.txt (line 1)) (2.10)\nRequirement already satisfied: python-dateutil>=2.6.1 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from pandas->-r requirements.txt (line 2)) (2.8.1)\nRequirement already satisfied: numpy>=1.13.3 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from pandas->-r requirements.txt (line 2)) (1.18.5)\nRequirement already satisfied: pytz>=2017.2 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from pandas->-r requirements.txt (line 2)) (2021.1)\nRequirement already satisfied: iso8601 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from bomwater->-r requirements.txt (line 3)) (1.0.2)\nRequirement already satisfied: xmltodict in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from bomwater->-r requirements.txt (line 3)) (0.12.0)\nRequirement already satisfied: shapely in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from bomwater->-r requirements.txt (line 3)) (1.8.0)\nRequirement already satisfied: geojson in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from bomwater->-r requirements.txt (line 3)) (2.5.0)\nRequirement already satisfied: json5 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from bomwater->-r requirements.txt (line 3)) (0.9.6)\nRequirement already satisfied: six>=1.5 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from python-dateutil>=2.6.1->pandas->-r requirements.txt (line 2)) (1.16.0)\n"
         }
       ],
-      "execution_count": 5,
+      "execution_count": 1,
       "metadata": {
         "jupyter": {
           "source_hidden": false,
@@ -24,7 +24,7 @@
           }
         },
         "gather": {
-          "logged": 1640058283225
+          "logged": 1640217886303
         }
       }
     },
@@ -40,7 +40,7 @@
           "text": "running install\nrunning bdist_egg\nrunning egg_info\nwriting mdba_gauge_getter.egg-info/PKG-INFO\nwriting dependency_links to mdba_gauge_getter.egg-info/dependency_links.txt\nwriting top-level names to mdba_gauge_getter.egg-info/top_level.txt\nwriting manifest file 'mdba_gauge_getter.egg-info/SOURCES.txt'\ninstalling library code to build/bdist.linux-x86_64/egg\nrunning install_lib\nrunning build_py\ncreating build/bdist.linux-x86_64/egg\ncreating build/bdist.linux-x86_64/egg/mdba_gauge_getter\ncreating build/bdist.linux-x86_64/egg/mdba_gauge_getter/data\ncopying build/lib/mdba_gauge_getter/data/bom_gauge_data.csv -> build/bdist.linux-x86_64/egg/mdba_gauge_getter/data\ncopying build/lib/mdba_gauge_getter/gauge_getter.py -> build/bdist.linux-x86_64/egg/mdba_gauge_getter\ncopying build/lib/mdba_gauge_getter/__init__.py -> build/bdist.linux-x86_64/egg/mdba_gauge_getter\nbyte-compiling build/bdist.linux-x86_64/egg/mdba_gauge_getter/gauge_getter.py to gauge_getter.cpython-36.pyc\nbyte-compiling build/bdist.linux-x86_64/egg/mdba_gauge_getter/__init__.py to __init__.cpython-36.pyc\ncreating build/bdist.linux-x86_64/egg/EGG-INFO\ncopying mdba_gauge_getter.egg-info/PKG-INFO -> build/bdist.linux-x86_64/egg/EGG-INFO\ncopying mdba_gauge_getter.egg-info/SOURCES.txt -> build/bdist.linux-x86_64/egg/EGG-INFO\ncopying mdba_gauge_getter.egg-info/dependency_links.txt -> build/bdist.linux-x86_64/egg/EGG-INFO\ncopying mdba_gauge_getter.egg-info/top_level.txt -> build/bdist.linux-x86_64/egg/EGG-INFO\nzip_safe flag not set; analyzing archive contents...\nmdba_gauge_getter.__pycache__.gauge_getter.cpython-36: module references __file__\ncreating 'dist/mdba_gauge_getter-0.1-py3.6.egg' and adding 'build/bdist.linux-x86_64/egg' to it\nremoving 'build/bdist.linux-x86_64/egg' (and everything under it)\nProcessing mdba_gauge_getter-0.1-py3.6.egg\nremoving '/anaconda/envs/azureml_py36/lib/python3.6/site-packages/mdba_gauge_getter-0.1-py3.6.egg' (and everything under it)\ncreating /anaconda/envs/azureml_py36/lib/python3.6/site-packages/mdba_gauge_getter-0.1-py3.6.egg\nExtracting mdba_gauge_getter-0.1-py3.6.egg to /anaconda/envs/azureml_py36/lib/python3.6/site-packages\nmdba-gauge-getter 0.1 is already the active version in easy-install.pth\n\nInstalled /anaconda/envs/azureml_py36/lib/python3.6/site-packages/mdba_gauge_getter-0.1-py3.6.egg\nProcessing dependencies for mdba-gauge-getter==0.1\nFinished processing dependencies for mdba-gauge-getter==0.1\n"
         }
       ],
-      "execution_count": 6,
+      "execution_count": 2,
       "metadata": {
         "jupyter": {
           "source_hidden": false,
@@ -59,7 +59,7 @@
         "import mdba_gauge_getter as gg"
       ],
       "outputs": [],
-      "execution_count": 2,
+      "execution_count": 3,
       "metadata": {
         "collapsed": true,
         "jupyter": {
@@ -72,7 +72,7 @@
           }
         },
         "gather": {
-          "logged": 1640058152385
+          "logged": 1640217895846
         }
       }
     },
@@ -127,7 +127,7 @@
           "text": "https://realtimedata.waternsw.com.au/cgi/webservice.pl?{\"params\":{\"site_list\":\"410130,410005,410040\",\"start_time\":\"20001204000000\",\"varfrom\":\"100.00\",\"interval\":\"day\",\"varto\":\"141.00\",\"datasource\":\"CP\",\"end_time\":\"20201204000000\",\"data_type\":\"mean\",\"multiplier\":\"1\"},\"function\":\"get_ts_traces\",\"version\":\"2\"}\n"
         }
       ],
-      "execution_count": 5,
+      "execution_count": 4,
       "metadata": {
         "collapsed": true,
         "jupyter": {
@@ -140,7 +140,7 @@
           }
         },
         "gather": {
-          "logged": 1637709276839
+          "logged": 1640217908733
         }
       }
     },
@@ -436,6 +436,7 @@
         "        ts[\"DATETIME\"] = ts[\"DATETIME\"].apply(fixdate)\r\n",
         "        ts[\"VALUE\"] = ts[\"Value[cumec]\"]\r\n",
         "        ts[\"QUALITYCODE\"] = ts[\"Quality\"]\r\n",
+        "        ts.res\r\n",
         "\r\n",
         "        collect.append(ts[[\"DATASOURCEID\",\"SITEID\",\t\"SUBJECTID\", \"DATETIME\", \"VALUE\", \"QUALITYCODE\"]])\r\n",
         "\r\n",
