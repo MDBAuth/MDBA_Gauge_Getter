@@ -257,7 +257,8 @@ def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_tim
     Given a list of gauge numbers, sorts the list into state groups, and queries relevant
     HTTP endpoints for data, returning as a Pandas dataframe object.
     '''
-
+    if isinstance(gauge_numbers,str):
+        gauge_numbers=[gauge_numbers]
 
     gauges_by_state = sort_gauges_by_state(gauge_numbers)
     data: List[List[List[Any]]] = []
