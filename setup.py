@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="mdba_gauge_getter",
-    version="0.2",
+    version="0.3",
     author="Murray Darling Basin Authority",
     author_email="TODO@mdba.gov.au",  # Be aware this email will get spammed
     description="Facilitates waterflow gauge data ingest from several endpoints. Dependency to several other projects.",

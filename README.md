@@ -7,6 +7,7 @@
 ![Code%20Coverage](https://img.shields.io/badge/Code%20Coverage-100.0-brightgreen)
 ![MyPy%20Errors](https://img.shields.io/badge/MyPy%20Errors-5-yellowgreen)
 ![Pylint%20Rating](https://img.shields.io/badge/Pylint%20Rating-7.8-green)
+[![CI](https://github.com/agile-analytics-au/MDBA_Gauge_Getter/actions/workflows/tox-tests.yml/badge.svg)]()
 
 </span>
 
