@@ -60,7 +60,7 @@ def test_call_state_api():
     req_url = req_url.split('?', 1)
     
 
-    assert req_url[0] == 'https://realtimedata.waternsw.com.au/cgi/webservice.pl'
+    assert req_url[0] == 'https://realtimedata.waternsw.com.au/cgi/webservice.exe'
     j = json.loads(req_url[1])
     assert j == {
         'params': {
@@ -135,7 +135,7 @@ def test_split_into_chunks():
 def test_extract_data():
     wrapper = {
         'error_num': 0,
-        '_return': {
+        'return': {
             'traces':  [
                 {
                     'site': 'site1',

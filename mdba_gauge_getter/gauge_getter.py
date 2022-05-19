@@ -170,7 +170,11 @@ def call_state_api(state: str, indicative_sites: List[str], start_time: datetime
     json_data = json.dumps(data, separators=(',', ':'))
 
  
-    req_url = f'https://{url}/cgi/webservice.pl?{json_data}'
+    req_url = f'https://{url}/cgi/webservice.exe?{json_data}'
+
+    if state =="QLD": # replace when QLD upgrades
+        req_url = f'https://{url}/cgi/webservice.pl?{json_data}'
+
     req_url = req_url.replace(' ', '%20')
 
     print(req_url)
@@ -196,9 +200,14 @@ def extract_data(state: str, data) -> List[List[Any]]:
     Collects 
     """
     
-
+    log.info(f'data keys {data.keys()}')
     extracted = []
-    for sample in data['_return']['traces']:
+    if '_return' in data.keys():
+        
+        data['return'] = data['_return']
+        del data['_return']
+  
+    for sample in data['return']['traces']:
         for obs in sample['trace']:
             # TODO-Detail - put detail re the purpose of obs['q'] - I don't know what/why this
             # logic exists, it's obviously to sanitise data but unclear on what/why
