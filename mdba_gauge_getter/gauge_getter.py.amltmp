@@ -52,14 +52,14 @@ STATE_FLOW_VarTo = {
 
 STATE_LAKELEVEL_VarFrom = {
     'NSW' : Decimal('130.00'),
-    'VIC' : Decimal('100.00'),
-    'QLD' : Decimal('100.00')
+    'VIC' : Decimal('130.00'),
+    'QLD' : Decimal('130.00')
 }
 
 STATE_LAKELEVEL_VarTo = {
     'NSW': Decimal('130.00'),
-    'VIC' : Decimal('100.00'),
-    'QLD' : Decimal('100.00')
+    'VIC' : Decimal('130.00'),
+    'QLD' : Decimal('130.00')
 }
 
 
