@@ -176,8 +176,6 @@ def call_state_api(state: str, indicative_sites: List[str], start_time: datetime
         req_url = f'https://{url}/cgi/webservice.pl?{json_data}'
 
     req_url = req_url.replace(' ', '%20')
-
-    print(req_url)
     
     # TODO-idiosyncratic the use of JSON in the query string seems werid, this should be a HTTP POST
     # but requires endpoints to support it..
