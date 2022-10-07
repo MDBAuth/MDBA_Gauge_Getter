@@ -51,9 +51,9 @@ STATE_FLOW_VarTo = {
 }
 
 MAX_SITES_PER_REQUEST = {
-    'NSW': 10,
-    'VIC': 10,
-    'QLD': 10 
+    'NSW': 5,
+    'VIC': 5,
+    'QLD': 5 
 }
 
 
