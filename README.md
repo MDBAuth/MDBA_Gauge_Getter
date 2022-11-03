@@ -13,7 +13,7 @@
 </span>
 
 ## Description
-MDBA Gague Getter provides a unified and simple interface to collect surface water data from the following state water portals:
+MDBA Gauge Getter provides a unified and simple interface to collect surface water data from the following state water portals:
 
 
 |State|Site|Source|
