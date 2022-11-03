@@ -1,4 +1,4 @@
-# MDBA Gague Getter
+# MDBA Gauge Getter
 
 <span class="badges">
 
