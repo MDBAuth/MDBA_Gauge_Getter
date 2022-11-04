@@ -27,13 +27,13 @@ STATE_URLS = {
 
 
 STATE_LEVEL_VarFrom = {
-    'NSW' : Decimal('130.00'),
+    'NSW' : Decimal('100.00'),
     'VIC' : Decimal('100.00'),
     'QLD' : Decimal('100.00')
 }
 
 STATE_LEVEL_VarTo = {
-    'NSW': Decimal('130.00'),
+    'NSW': Decimal('100.00'),
     'VIC' : Decimal('100.00'),
     'QLD' : Decimal('100.00')
 }
@@ -49,6 +49,19 @@ STATE_FLOW_VarTo = {
     'VIC' : Decimal('141.00'),
     'QLD' : Decimal('141.00')
 }
+
+STATE_LAKELEVEL_VarFrom = {
+    'NSW' : Decimal('130.00'),
+    'VIC' : Decimal('100.00'),
+    'QLD' : Decimal('100.00')
+}
+
+STATE_LAKELEVEL_VarTo = {
+    'NSW': Decimal('130.00'),
+    'VIC' : Decimal('100.00'),
+    'QLD' : Decimal('100.00')
+}
+
 
 MAX_SITES_PER_REQUEST = {
     'NSW': 5,
@@ -134,6 +147,10 @@ def call_state_api(state: str, indicative_sites: List[str], start_time: datetime
         var_from = STATE_FLOW_VarFrom[state]
         var_to = STATE_FLOW_VarTo[state]
 
+    elif (var=="LL"):
+        var_from = STATE_LAKELEVEL_VarFrom[state]
+        var_to = STATE_LAKELEVEL_VarTo[state]
+
     sites = ','.join(indicative_sites)
     data = {
         'params': {
@@ -199,6 +216,7 @@ def extract_data(state: str, data) -> List[List[Any]]:
     """
     
     log.info(f'data keys {data.keys()}')
+    log.info(f'data is {data}')
     extracted = []
     if '_return' in data.keys():
         
