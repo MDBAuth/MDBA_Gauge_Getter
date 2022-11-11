@@ -27,13 +27,13 @@ STATE_URLS = {
 
 
 STATE_LEVEL_VarFrom = {
-    'NSW' : Decimal('130.00'),
+    'NSW' : Decimal('100.00'),
     'VIC' : Decimal('100.00'),
     'QLD' : Decimal('100.00')
 }
 
 STATE_LEVEL_VarTo = {
-    'NSW': Decimal('130.00'),
+    'NSW': Decimal('100.00'),
     'VIC' : Decimal('100.00'),
     'QLD' : Decimal('100.00')
 }
@@ -48,6 +48,18 @@ STATE_FLOW_VarTo = {
     'NSW': Decimal('141.00'),
     'VIC' : Decimal('141.00'),
     'QLD' : Decimal('141.00')
+}
+
+STATE_LAKELEVEL_VarFrom = {
+    'NSW' : Decimal('130.00'),
+    'VIC' : Decimal('130.00'),
+    'QLD' : Decimal('130.00')
+}
+
+STATE_LAKELEVEL_VarTo = {
+    'NSW': Decimal('130.00'),
+    'VIC' : Decimal('130.00'),
+    'QLD' : Decimal('130.00')
 }
 
 MAX_SITES_PER_REQUEST = {
@@ -128,11 +140,14 @@ def call_state_api(state: str, indicative_sites: List[str], start_time: datetime
     if (var=="L"):
         var_from = STATE_LEVEL_VarFrom[state]
         var_to = STATE_LEVEL_VarTo[state]
-        
 
     elif (var=="F"):
         var_from = STATE_FLOW_VarFrom[state]
         var_to = STATE_FLOW_VarTo[state]
+
+    elif (var=="LL"):
+        var_from = STATE_LAKELEVEL_VarFrom[state]
+        var_to = STATE_LAKELEVEL_VarTo[state]
 
     sites = ','.join(indicative_sites)
     data = {
@@ -199,23 +214,28 @@ def extract_data(state: str, data) -> List[List[Any]]:
     """
     
     log.info(f'data keys {data.keys()}')
+    log.info(f'data is {data}')
     extracted = []
     if '_return' in data.keys():
         
         data['return'] = data['_return']
         del data['_return']
-  
-    for sample in data['return']['traces']:
-        for obs in sample['trace']:
-            # TODO-Detail - put detail re the purpose of obs['q'] - I don't know what/why this
-            # logic exists, it's obviously to sanitise data but unclear on what/why
-            # TODO-idiosyncratic: was < 999 prior to refactor, this means that 998 is the max
-            # accepted number, this would presumably be 999, but I can't say for sure
-            if int(obs['q']) >= 999:
-                continue    
-            obsdate = datetime.datetime.strptime(str(obs['t']), '%Y%m%d%H%M%S').date()
-            objRow = [state, sample['site'], 'WATER', obsdate, obs['v'], obs['q']]
-            extracted.append(objRow)
+    try:
+        for sample in data['return']['traces']:
+            for obs in sample['trace']:
+                # TODO-Detail - put detail re the purpose of obs['q'] - I don't know what/why this
+                # logic exists, it's obviously to sanitise data but unclear on what/why
+                # TODO-idiosyncratic: was < 999 prior to refactor, this means that 998 is the max
+                # accepted number, this would presumably be 999, but I can't say for sure
+                if int(obs['q']) >= 999:
+                    continue
+                obsdate = datetime.datetime.strptime(str(obs['t']), '%Y%m%d%H%M%S').date()
+                objRow = [state, sample['site'], 'WATER', obsdate, obs['v'], obs['q']]
+                extracted.append(objRow)
+
+    except KeyError:
+        log.error('No valid data contained in response, skipping')
+
     return extracted
 
 
@@ -253,7 +273,9 @@ def process_gauge_pull(sitelist: List[str], callstate: str, call_data_source: st
         log.info(f'{callstate} - Request {index+1} of {len(site_chunks)}')
         ret = call_state_api(callstate, s, start_time_user, end_time_user,
                              call_data_source, var, interval, data_type)
+
         response_data += extract_data(callstate, ret)
+
     return response_data
 
 

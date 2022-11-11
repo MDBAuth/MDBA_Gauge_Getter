@@ -21,3 +21,4 @@ pip-selfcheck.json
 .coverage.json
 .python-version
 .tox/
+.idea/
