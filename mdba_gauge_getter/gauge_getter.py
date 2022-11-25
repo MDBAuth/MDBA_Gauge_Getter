@@ -107,8 +107,10 @@ def sort_gauges_by_state(gauge_numbers: List[str]) -> Dict[str, List[str]]:
         'NSW': [],
         'QLD': [],
         'VIC': [],
+        'SA': [],
         'rest': [],
     }
+    
     for gauge in gauge_numbers:
         for gauge_state in get_states_for_gauge(gauge):
             if gauge_state not in states:
