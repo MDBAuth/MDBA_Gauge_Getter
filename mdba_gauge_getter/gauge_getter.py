@@ -6,7 +6,7 @@ from decimal import Decimal
 from typing import Tuple, List, Dict, TypeVar, Set, Optional, Any
 import requests
 import pandas as pd
-
+import bom_water
 
 
 logging.basicConfig()
@@ -110,7 +110,7 @@ def sort_gauges_by_state(gauge_numbers: List[str]) -> Dict[str, List[str]]:
         'SA': [],
         'rest': [],
     }
-    
+
     for gauge in gauge_numbers:
         for gauge_state in get_states_for_gauge(gauge):
             if gauge_state not in states:
@@ -215,8 +215,8 @@ def extract_data(state: str, data) -> List[List[Any]]:
     Collects 
     """
     
-    log.info(f'data keys {data.keys()}')
-    log.info(f'data is {data}')
+    # log.info(f'data keys {data.keys()}')
+    # log.info(f'data is {data}')
     extracted = []
     if '_return' in data.keys():
         
@@ -280,25 +280,86 @@ def process_gauge_pull(sitelist: List[str], callstate: str, call_data_source: st
 
     return response_data
 
+def fixdate(timestamp):
+    date = timestamp.to_pydatetime()
+    date = date.date()
+    #datetime.astimzone('Australia/Sydney',date) #date.tz_localize('Australia/Sydney')   #datetime.datetime.strptime(date, '%Y-%m-%dT%H:%M:%S')
+    return date
+
+def gauge_pull_bom(gauge_numbers: List[str], start_time_user: datetime.date, end_time_user: datetime.date,
+               var: str = 'F',
+               interval: str = 'day', data_type: str = 'mean') -> pd.DataFrame:
+    '''
+    Given a list of gauge numbers, breaks the list into individual gauges, and uses BomWater to get data, 
+    returning as a Pandas dataframe object in a gauge getter format.
+    '''
+    
+    bm = bom_water.BomWater()
+
+    if (interval == 'day') & (data_type == 'mean'):
+        procedure = bm.procedures.Pat4_C_B_1_DailyMean
+    
+    if var == "F":
+        prop = bm.properties.Water_Course_Discharge
+
+    t_begin = start_time_user.strftime("%Y-%m-%dT%H:%M:%S%z")
+    t_end = end_time_user.strftime("%Y-%m-%dT%H:%M:%S%z")
+
+    # t_begin = "1800-01-01T00:00:00+10"
+    # t_end = "2030-12-31T00:00:00+10"
+    collect=[]
+    for gauge in gauge_numbers:
+        
+        response = bm.request(bm.actions.GetObservation, gauge, prop, procedure, t_begin, t_end)
+
+        response_json = bm.xml_to_json(response.text)  
+        ts = bm.parse_get_data(response)
+        # print(ts)
+        if ts.empty:
+            ts = pd.DataFrame(columns=["DATASOURCEID","SITEID",	"SUBJECTID", "DATETIME", "VALUE", "QUALITYCODE"])
+            collect.append(ts)
+        else:
+            # move to format DATASOURCEID	SITEID	SUBJECTID	DATETIME	VALUE	QUALITYCODE
+            ts["DATASOURCEID"] = "BOM"
+            ts["SITEID"] = gauge
+            ts["SUBJECTID"] = "WATER"
+            ts["DATETIME"] = ts.index.to_pydatetime()
+            ts["DATETIME"] = pd.to_datetime(ts["DATETIME"])
+            ts["DATETIME"] = ts["DATETIME"].apply(fixdate)
+            ts["VALUE"] = ts["Value[cumec]"]
+            ts["QUALITYCODE"] = ts["Quality"]
+            ts.reset_index(drop=True, inplace=True)
+
+            collect.append(ts[["DATASOURCEID","SITEID",	"SUBJECTID", "DATETIME", "VALUE", "QUALITYCODE"]])
+    output = pd.concat(collect)
+    return output
 
 def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_time_user: datetime.date,
                var: str = 'F',
-               interval: str = 'day', data_type: str = 'mean') -> pd.DataFrame:
+               interval: str = 'day', data_type: str = 'mean', data_source: str = 'state') -> pd.DataFrame:
     '''
     Given a list of gauge numbers, sorts the list into state groups, and queries relevant
     HTTP endpoints for data, returning as a Pandas dataframe object.
     '''
-    if isinstance(gauge_numbers,str):
+
+    if isinstance(gauge_numbers, str):
         gauge_numbers=[gauge_numbers]
 
     gauges_by_state = sort_gauges_by_state(gauge_numbers)
+
+    if data_source.lower() == 'bom':
+        gauges_by_state = {'NSW': [], 'QLD': [], 'VIC': [], 'SA': [], 'rest': [],'BOM': gauge_numbers}
+    else:
+        gauges_by_state['BOM'] = gauges_by_state['SA']
+
     data: List[List[List[Any]]] = []
     data += process_gauge_pull(gauges_by_state['NSW'], 'NSW', 'CP', start_time_user,
                                end_time_user, var, interval, data_type)
     data += process_gauge_pull(gauges_by_state['VIC'], 'VIC', 'PUBLISH', start_time_user,
                                end_time_user, var, interval, data_type)
     data += process_gauge_pull(gauges_by_state['QLD'], 'QLD', 'AT', start_time_user,
-                               end_time_user, var, interval, data_type)
+                               end_time_user, var, interval, data_type)                         
     cols = ['DATASOURCEID', 'SITEID', 'SUBJECTID', 'DATETIME', 'VALUE', 'QUALITYCODE']
     flow_data_frame = pd.DataFrame(data=data, columns=cols)
+    flow_data_frame = pd.concat([flow_data_frame, gauge_pull_bom(gauges_by_state['BOM'], start_time_user, end_time_user, var, interval, data_type)], axis=0, ignore_index=True)
     return flow_data_frame
