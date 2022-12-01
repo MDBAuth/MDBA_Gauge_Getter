@@ -10,7 +10,7 @@ import requests
 import pandas as pd
 from mdba_gauge_getter import gauge_getter
 from mocks import MockRequestLib, MockCallStateAPI, \
-    MockPandasDataFrame, MockGaugePull, MockGaugePullBOM, MockExtractData, \
+    MockPandasDataFrame, MockGaugePullBOM, MockExtractData, \
     mock_sort_gauges_by_state, mock_tqdm, MOCK_CSV, MockProcessGaugePulls
 
 # pylint: disable=missing-function-docstring,missing-module-docstring
@@ -165,6 +165,7 @@ def test_gauge_pull():
     m = MockProcessGaugePulls()
     b = MockGaugePullBOM()
     gauge_getter.pd = MockPandasDataFrame()
+
     gauge_getter.extract_data = MockExtractData().extract_data
     gauge_getter.sort_gauges_by_state = mock_sort_gauges_by_state
     gauge_getter.process_gauge_pull = m.process_gauge_pull

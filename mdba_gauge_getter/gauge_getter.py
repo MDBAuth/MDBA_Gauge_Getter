@@ -330,13 +330,15 @@ def gauge_pull_bom(gauge_numbers: List[str], start_time_user: datetime.date, end
             ts["DATETIME"] = ts.index.to_pydatetime()
             ts["DATETIME"] = pd.to_datetime(ts["DATETIME"])
             ts["DATETIME"] = ts["DATETIME"].apply(fixdate)
-            ts["VALUE"] = 86.4*ts["Value[cumec]"] # Converting it to ML/day
+            ts["VALUE"] = 86.4*ts["Value[cumec]"] # Converting it from Cumec to ML/day
             ts["QUALITYCODE"] = ts["Quality"]
             ts.reset_index(drop=True, inplace=True)
             collect.append(ts[["DATASOURCEID","SITEID",	"SUBJECTID", "DATETIME", "VALUE", "QUALITYCODE"]])
 
     output = pd.concat(collect)
-    output = output.to_dict()
+    # log.info(f'BOM Data DF: {output}')
+    output = output.values.tolist()
+    # log.info(f'BOM Data Dict: {output}')
     return output
 
 def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_time_user: datetime.date,
@@ -350,12 +352,14 @@ def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_tim
         gauge_numbers=[gauge_numbers]
 
     gauges_by_state = sort_gauges_by_state(gauge_numbers)
+    
 
     if data_source.lower() == 'bom':
         gauges_by_state = {'NSW': [], 'QLD': [], 'VIC': [], 'SA': [], 'rest': [],'BOM': gauge_numbers}
-    else:
+    elif 'SA' in gauges_by_state:
         gauges_by_state['BOM'] = gauges_by_state['SA']
 
+    # log.info(f'Gauges by state is: {gauges_by_state}')
     data: List[List[List[Any]]] = []
     data += process_gauge_pull(gauges_by_state['NSW'], 'NSW', 'CP', start_time_user,
                                end_time_user, var, interval, data_type)
@@ -363,9 +367,11 @@ def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_tim
                                end_time_user, var, interval, data_type)
     data += process_gauge_pull(gauges_by_state['QLD'], 'QLD', 'AT', start_time_user,
                                end_time_user, var, interval, data_type) 
+    # log.info(f'State data:{data}')
     if 'BOM' in gauges_by_state:                          
         data += gauge_pull_bom(gauges_by_state['BOM'], start_time_user, 
-                               end_time_user, var, interval, data_type)                        
+                               end_time_user, var, interval, data_type)   
+        # log.info(f'BOM data:{data}')
    
     cols = ['DATASOURCEID', 'SITEID', 'SUBJECTID', 'DATETIME', 'VALUE', 'QUALITYCODE']
     flow_data_frame = pd.DataFrame(data=data, columns=cols)

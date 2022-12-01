@@ -56,6 +56,7 @@ class MockPandasDataFrame:
     def __init__(self):
         self.columns = None
         self.calls = []
+        # self.values = []
 
     def __iter__(self):
         return self
@@ -68,9 +69,14 @@ class MockPandasDataFrame:
     
         return self
 
-    def to_dict(self):
+    @property
+    def values(self):
+
+        return self
+
+    def tolist(self):
         
-        return dict()
+        return list()
 
 
 class MockGaugePull:
