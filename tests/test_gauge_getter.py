@@ -210,7 +210,7 @@ def test_gauge_pull():
 
 def test_gauge_pull_bom():
     b = MockGaugePullBOM()
-    gauge_getter.pd = MockPandasDataFrame()
+    # gauge_getter.pd = MockPandasDataFrame()
     gauge_getter.gauge_pull_bom = b.gauge_pull_bom
     gauge_getter.sort_gauges_by_state = mock_sort_gauges_by_state
     start = datetime.datetime.strptime('2000-01-31', '%Y-%m-%d').date()
