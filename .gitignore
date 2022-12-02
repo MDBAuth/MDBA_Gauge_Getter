@@ -19,3 +19,6 @@ env/*
 pip-selfcheck.json
 */*.egg-info/*
 .coverage.json
+.python-version
+.tox/
+.idea/

@@ -4,14 +4,19 @@ from io import StringIO
 from decimal import Decimal
 from typing import Dict, Any
 import pytest
+import logging
+import warnings
 import requests
 import pandas as pd
 from mdba_gauge_getter import gauge_getter
 from mocks import MockRequestLib, MockCallStateAPI, \
-    MockPandaDataFrame, MockGaugePull, MockExtractData, \
+    MockPandasDataFrame, MockGaugePullBOM, MockExtractData, \
     mock_sort_gauges_by_state, mock_tqdm, MOCK_CSV, MockProcessGaugePulls
 
 # pylint: disable=missing-function-docstring,missing-module-docstring
+logging.basicConfig()
+log = logging.getLogger(__name__[:-3])
+log.setLevel(logging.INFO)
 
 REAL_REFERENCES = {
     'requests': gauge_getter.requests,
@@ -60,7 +65,7 @@ def test_call_state_api():
     req_url = req_url.split('?', 1)
     
 
-    assert req_url[0] == 'https://realtimedata.waternsw.com.au/cgi/webservice.pl'
+    assert req_url[0] == 'https://realtimedata.waternsw.com.au/cgi/webservice.exe'
     j = json.loads(req_url[1])
     assert j == {
         'params': {
@@ -135,7 +140,7 @@ def test_split_into_chunks():
 def test_extract_data():
     wrapper = {
         'error_num': 0,
-        '_return': {
+        'return': {
             'traces':  [
                 {
                     'site': 'site1',
@@ -158,7 +163,9 @@ def test_extract_data():
 
 def test_gauge_pull():
     m = MockProcessGaugePulls()
-    gauge_getter.pd = MockPandaDataFrame()
+    b = MockGaugePullBOM()
+    gauge_getter.pd = MockPandasDataFrame()
+
     gauge_getter.extract_data = MockExtractData().extract_data
     gauge_getter.sort_gauges_by_state = mock_sort_gauges_by_state
     gauge_getter.process_gauge_pull = m.process_gauge_pull
@@ -166,33 +173,61 @@ def test_gauge_pull():
     end = datetime.datetime.strptime('2000-02-01', '%Y-%m-%d').date()
 
     gauge_getter.gauge_pull([
-        '1', '5', '9', #  NSW
-        '2', '6', '10', # QLD
-        '3', '7', '11', # VIC
-        '4', '8', '12' # Rest
+        '1', '3', # NSW
+        '2', '3', '4', # QLD
+        '4', '5', # VIC
+        '6', # SA
+        '10', '15' # Rest did not appear in the calls variable
         ], start, end)
+
     calls = m.calls
-    assert(len(calls)) == 3
-    assert calls[0] == (['1', '5', '9'], 'NSW', 'CP', start, end, 'F', 'day', 'mean')
-    assert calls[1] == (['3', '7', '11'], 'VIC', 'PUBLISH',
-                        start, end, 'F', 'day', 'mean')
-    assert calls[2] == (['2', '6', '10'], 'QLD', 'AT', start, end, 'F', 'day', 'mean')
+    calls.append(b.calls)
+    
+    log.warning(f'{calls[0]}\n{calls[1]}\n{calls[2]}\n{calls[3]}')
+    warnings.warn(UserWarning(f'\n#Calls: {len(calls)}\n{calls[0]}\n{calls[1]}\n{calls[2]}\n{calls[3]}'))
+    assert(len(calls)) == 4
+    assert calls[0] == (['1', '3'], 'NSW', 'CP', start, end, 'F', 'day', 'mean')
+    assert calls[1] == (['4', '5'], 'VIC', 'PUBLISH', start, end, 'F', 'day', 'mean')
+    assert calls[2] == (['2', '3', '4'], 'QLD', 'AT', start, end, 'F', 'day', 'mean')
+    assert calls[3] == []
 
     calls = gauge_getter.pd.calls
-    assert len(calls) == 1
-    assert len(calls[0]) == 2
-    data, columns = calls[0]
+    assert len(calls) == 2
+    warnings.warn(UserWarning(f'\n#Calls: {len(calls)}\n{calls[0]}\n{calls[1]}'))
+    assert len(calls[1]) == 2
+    data, columns = calls[1]
     assert columns == ['DATASOURCEID', 'SITEID', 'SUBJECTID', 'DATETIME', 'VALUE', 'QUALITYCODE']
     assert len(data) == 3
     assert data[0] == (
-        ['1', '5', '9'], 'NSW', 'CP', start, end, 'F', 'day', 'mean'
+        ['1', '3'], 'NSW', 'CP', start, end, 'F', 'day', 'mean'
     )
     assert data[1] == (
-        ['3', '7', '11'], 'VIC', 'PUBLISH', start, end, 'F', 'day', 'mean'
+        ['4', '5'], 'VIC', 'PUBLISH', start, end, 'F', 'day', 'mean'
     )
     assert data[2] == (
-        ['2', '6', '10'], 'QLD', 'AT', start, end, 'F', 'day', 'mean'
+        ['2', '3', '4'], 'QLD', 'AT', start, end, 'F', 'day', 'mean'
     )
+
+
+def test_gauge_pull_bom():
+    b = MockGaugePullBOM()
+    gauge_getter.pd = MockPandasDataFrame()
+    gauge_getter.gauge_pull_bom = b.gauge_pull_bom
+    gauge_getter.sort_gauges_by_state = mock_sort_gauges_by_state
+    start = datetime.datetime.strptime('2000-01-31', '%Y-%m-%d').date()
+    end = datetime.datetime.strptime('2000-02-01', '%Y-%m-%d').date()
+
+    gauge_getter.gauge_pull([
+        '6', # SA
+        '10', '15' # Rest 
+        ], start, end)
+
+    calls = b.calls
+    warnings.warn(UserWarning(f'\n#Calls: {len(calls)}\n{calls}'))
+    assert(len(calls)) == 1
+    data = calls[0][0]
+    assert data == ['6']
+    
 
 def test_process_gauge_pull():
     mock_call_state_api = MockCallStateAPI()
@@ -203,11 +238,11 @@ def test_process_gauge_pull():
     end = datetime.datetime.strptime('2000-02-01', '%Y-%m-%d').date()
     var = 'F'
 
-    gauge_getter.process_gauge_pull(['1', '5', '9'], 'NSW', 'CP', start, end,
+    gauge_getter.process_gauge_pull(['1', '6', '11'], 'NSW', 'CP', start, end,
                                      'F','day', 'mean')
-    assert len(mock_call_state_api.calls[0])  == len([['NSW', ['1','5','9'], start, end, 'CP', var, 'day', 'mean']][0])                             
+    assert len(mock_call_state_api.calls[0])  == len([['NSW', ['1','6','11'], start, end, 'CP', var, 'day', 'mean']][0])                             
     assert mock_call_state_api.calls == [
-        ['NSW', ['1','5','9'], start, end, 'CP', var, 'day', 'mean']]
+        ['NSW', ['1','6','11'], start, end, 'CP', var, 'day', 'mean']]
         #['NSW', ['5'], start, end, 'CP', var, 'day', 'mean'],
         #['NSW', ['9'], start, end, 'CP', var, 'day', 'mean']
     #]
@@ -217,9 +252,12 @@ def test_process_gauge_pull():
 
 def test_states_for_gauge():
     gauge_getter.gauge_data_uri = StringIO(MOCK_CSV)
-    assert gauge_getter.get_states_for_gauge('2') == set(['NSW'])
-    assert gauge_getter.get_states_for_gauge('3') == set(['QLD', 'NSW'])
-    assert gauge_getter.get_states_for_gauge('4') == set(['QLD'])
+    assert gauge_getter.get_states_for_gauge('1') == set(['NSW'])
+    assert gauge_getter.get_states_for_gauge('2') == set(['QLD'])
+    assert gauge_getter.get_states_for_gauge('3') == set(['NSW', 'QLD'])
+    assert gauge_getter.get_states_for_gauge('4') == set(['QLD', 'VIC'])
+    assert gauge_getter.get_states_for_gauge('5') == set(['VIC'])
+    assert gauge_getter.get_states_for_gauge('6') == set(['SA'])
 
 def dict_matches(d1: Dict[str, Any], d2: Dict[str, Any]):
     d1_keys = set(d1.keys())
@@ -231,17 +269,12 @@ def dict_matches(d1: Dict[str, Any], d2: Dict[str, Any]):
 
 def test_sort_gauges_by_state():
     gauge_getter.gauge_data_uri = StringIO(MOCK_CSV)
+    print(gauge_getter.gauge_data_uri)
     gauge_getter.init()
-    ret = gauge_getter.sort_gauges_by_state(['1', '2', '3', '4'])
-    expect = {'NSW': ['2', '3'], 'QLD': ['3', '4'], 'VIC': [], 'rest': ['1']}
+    ret = gauge_getter.sort_gauges_by_state(['1', '2', '3', '4', '5', '6', '10'])
+    expect = {'NSW': ['1', '3'], 'QLD': ['2', '3', '4'], 'VIC': ['4', '5'], 'SA': ['6'], 'rest': ['10']}
     if not dict_matches(ret, expect):
         raise Exception(f'Dict \'{ret}\' does not match dict \'{expect}\'')
-
-    ret = gauge_getter.sort_gauges_by_state(['1', '2', '3', '4', '1', '2', '3', '4'])
-    if not dict_matches(ret, expect):
-        raise Exception(f'Dict \'{ret}\' does not match dict \'{expect}\'')
-
-
 
 
 if __name__ == '__main__':

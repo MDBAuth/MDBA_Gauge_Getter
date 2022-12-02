@@ -2,5 +2,4 @@
 requests
 pandas
 bomwater
-git+https://github.com/MDBAuth/MDBA_Gauge_Getter@master
 
