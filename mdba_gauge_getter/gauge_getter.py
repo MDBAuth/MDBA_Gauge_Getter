@@ -307,7 +307,13 @@ def gauge_pull_bom(gauge_numbers: List[str], start_time_user: datetime.date, end
     
     if var == "F":
         prop = bm.properties.Water_Course_Discharge
-
+        if (interval == 'day') & (data_type == 'mean'):
+          procedure = bm.procedures.Pat4_C_B_1_DailyMean
+    if var == "L":
+        prop = bm.properties.Water_Course_Level
+        if (interval == 'day') & (data_type == 'mean'):
+          procedure = bm.procedures.Pat4_C_B_1_DailyMean
+    
     t_begin = start_time_user.strftime("%Y-%m-%dT%H:%M:%S%z")
     t_end = end_time_user.strftime("%Y-%m-%dT%H:%M:%S%z")
 
@@ -330,7 +336,10 @@ def gauge_pull_bom(gauge_numbers: List[str], start_time_user: datetime.date, end
             ts["DATETIME"] = ts.index.to_pydatetime()
             ts["DATETIME"] = pd.to_datetime(ts["DATETIME"])
             ts["DATETIME"] = ts["DATETIME"].apply(fixdate)
-            ts["VALUE"] = 86.4*ts["Value[cumec]"] # Converting it from Cumec to ML/day
+            if var == "F":
+                ts["VALUE"] = 86.4*ts["Value[cumec]"] # Converting it from Cumec to ML/day
+            else:
+                ts["VALUE"] = ts["Value[meter]"]
             ts["QUALITYCODE"] = ts["Quality"]
             ts.reset_index(drop=True, inplace=True)
             collect.append(ts[["DATASOURCEID","SITEID",	"SUBJECTID", "DATETIME", "VALUE", "QUALITYCODE"]])
@@ -356,7 +365,7 @@ def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_tim
 
     if data_source.lower() == 'bom':
         gauges_by_state = {'NSW': [], 'QLD': [], 'VIC': [], 'SA': [], 'rest': [],'BOM': gauge_numbers}
-    elif 'SA' in gauges_by_state:
+    elif gauges_by_state['SA']:
         gauges_by_state['BOM'] = gauges_by_state['SA']
 
     # log.info(f'Gauges by state is: {gauges_by_state}')
