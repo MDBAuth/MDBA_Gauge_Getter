@@ -302,17 +302,36 @@ def gauge_pull_bom(gauge_numbers: List[str], start_time_user: datetime.date, end
     
     bm = bom_water.BomWater()
 
-    if (interval == 'day') & (data_type == 'mean'):
-        procedure = bm.procedures.Pat4_C_B_1_DailyMean
-    
     if var == "F":
         prop = bm.properties.Water_Course_Discharge
-        if (interval == 'day') & (data_type == 'mean'):
-          procedure = bm.procedures.Pat4_C_B_1_DailyMean
-    if var == "L":
+        if (interval.lower() in ['hour', 'h']):
+            procedure = bm.procedures.Pat4_C_B_1_HourlyMean
+        elif (interval.lower() in ['day', 'd']):
+            if (data_type in ['min', 'minimum']):
+                procedure = bm.procedures.Pat4_C_B_1_DailyMin
+            elif (data_type ['mean', 'avg', 'average', 'av', 'a']):
+                procedure = bm.procedures.Pat4_C_B_1_DailyMean
+            elif (data_type ['max', 'maximum']):
+                procedure = bm.procedures.Pat4_C_B_1_DailyMax        
+        elif (interval.lower() in ['month', 'm']):
+            procedure = bm.procedures.Pat4_C_B_1_MonthlyMean
+        elif (interval.lower() in ['year', 'y']):
+            procedure = bm.procedures.Pat4_C_B_1_YearlyMean
+    elif var == "L":
         prop = bm.properties.Water_Course_Level
-        if (interval == 'day') & (data_type == 'mean'):
-          procedure = bm.procedures.Pat4_C_B_1_DailyMean
+        if (interval.lower() in ['hour', 'h']):
+            procedure = bm.procedures.Pat3_C_B_1_HourlyMean
+        elif (interval.lower() in ['day', 'd']):
+            if (data_type in ['min', 'minimum']):
+                procedure = bm.procedures.Pat3_C_B_1_DailyMin
+            elif (data_type in ['mean', 'avg', 'average', 'av', 'a']):
+                procedure = bm.procedures.Pat3_C_B_1_DailyMean
+            elif (data_type in ['max', 'maximum']):
+                procedure = bm.procedures.Pat3_C_B_1_DailyMax        
+        elif (interval.lower() in ['month', 'm']):
+            procedure = bm.procedures.Pat3_C_B_1_MonthlyMean
+        elif (interval.lower() in ['year', 'y']):
+            procedure = bm.procedures.Pat3_C_B_1_YearlyMean
     
     t_begin = start_time_user.strftime("%Y-%m-%dT%H:%M:%S%z")
     t_end = end_time_user.strftime("%Y-%m-%dT%H:%M:%S%z")
