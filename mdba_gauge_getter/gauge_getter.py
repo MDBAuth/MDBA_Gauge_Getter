@@ -309,7 +309,7 @@ def gauge_pull_bom(gauge_numbers: List[str], start_time_user: datetime.date, end
         elif (interval.lower() in ['day', 'd']):
             if (data_type in ['min', 'minimum']):
                 procedure = bm.procedures.Pat4_C_B_1_DailyMin
-            elif (data_type ['mean', 'avg', 'average', 'av', 'a']):
+            elif (data_type in ['mean', 'avg', 'average', 'av', 'a']):
                 procedure = bm.procedures.Pat4_C_B_1_DailyMean
             elif (data_type ['max', 'maximum']):
                 procedure = bm.procedures.Pat4_C_B_1_DailyMax        
