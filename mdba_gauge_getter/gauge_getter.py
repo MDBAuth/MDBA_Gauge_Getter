@@ -293,15 +293,8 @@ def fixdate(timestamp):
     #datetime.astimzone('Australia/Sydney',date) #date.tz_localize('Australia/Sydney')   #datetime.datetime.strptime(date, '%Y-%m-%dT%H:%M:%S')
     return date
 
-def gauge_pull_bom(gauge_numbers: List[str], start_time_user: datetime.date, end_time_user: datetime.date,
-               var: str = 'F', interval: str = 'day', data_type: str = 'mean') -> pd.DataFrame:
-    '''
-    Given a list of gauge numbers, breaks the list into individual gauges, and uses BomWater to get data, 
-    returning as a Pandas dataframe object in a gauge getter format.
-    '''
-    
+def bom_params(var, interval, data_type):
     bm = bom_water.BomWater()
-
     if var == "F":
         prop = bm.properties.Water_Course_Discharge
         if (interval.lower() in ['hour', 'h']):
@@ -311,7 +304,7 @@ def gauge_pull_bom(gauge_numbers: List[str], start_time_user: datetime.date, end
                 procedure = bm.procedures.Pat4_C_B_1_DailyMin
             elif (data_type in ['mean', 'avg', 'average', 'av', 'a']):
                 procedure = bm.procedures.Pat4_C_B_1_DailyMean
-            elif (data_type ['max', 'maximum']):
+            elif (data_type in ['max', 'maximum']):
                 procedure = bm.procedures.Pat4_C_B_1_DailyMax        
         elif (interval.lower() in ['month', 'm']):
             procedure = bm.procedures.Pat4_C_B_1_MonthlyMean
@@ -332,6 +325,47 @@ def gauge_pull_bom(gauge_numbers: List[str], start_time_user: datetime.date, end
             procedure = bm.procedures.Pat3_C_B_1_MonthlyMean
         elif (interval.lower() in ['year', 'y']):
             procedure = bm.procedures.Pat3_C_B_1_YearlyMean
+    elif var == "SL":
+        prop = bm.properties.Storage_Level
+        if (interval.lower() in ['hour', 'h']):
+            procedure = bm.procedures.Pat7_C_B_1_HourlyMean
+        elif (interval.lower() in ['day', 'd']):
+            if (data_type in ['min', 'minimum']):
+                procedure = bm.procedures.Pat7_C_B_1_DailyMin
+            elif (data_type in ['mean', 'avg', 'average', 'av', 'a']):
+                procedure = bm.procedures.Pat7_C_B_1_DailyMean
+            elif (data_type in ['max', 'maximum']):
+                procedure = bm.procedures.Pat7_C_B_1_DailyMax        
+        elif (interval.lower() in ['month', 'm']):
+            procedure = bm.procedures.Pat7_C_B_1_MonthlyMean
+        elif (interval.lower() in ['year', 'y']):
+            procedure = bm.procedures.Pat7_C_B_1_YearlyMean
+    elif var == "SV":
+        prop = bm.properties.Storage_Volume
+        if (interval.lower() in ['hour', 'h']):
+            procedure = bm.procedures.Pat6_C_B_1_HourlyMean
+        elif (interval.lower() in ['day', 'd']):
+            if (data_type in ['min', 'minimum']):
+                procedure = bm.procedures.Pat6_C_B_1_DailyMin
+            elif (data_type in ['mean', 'avg', 'average', 'av', 'a']):
+                procedure = bm.procedures.Pat6_C_B_1_DailyMean
+            elif (data_type in ['max', 'maximum']):
+                procedure = bm.procedures.Pat6_C_B_1_DailyMax        
+        elif (interval.lower() in ['month', 'm']):
+            procedure = bm.procedures.Pat6_C_B_1_MonthlyMean
+        elif (interval.lower() in ['year', 'y']):
+            procedure = bm.procedures.Pat6_C_B_1_YearlyMean
+    return prop, procedure
+
+def gauge_pull_bom(gauge_numbers: List[str], start_time_user: datetime.date, end_time_user: datetime.date,
+               var: str = 'F', interval: str = 'day', data_type: str = 'mean') -> pd.DataFrame:
+    '''
+    Given a list of gauge numbers, breaks the list into individual gauges, and uses BomWater to get data, 
+    returning as a Pandas dataframe object in a gauge getter format.
+    '''
+    bm = bom_water.BomWater()
+    
+    prop, procedure = bom_params(var, interval, data_type)
     
     t_begin = start_time_user.strftime("%Y-%m-%dT%H:%M:%S%z")
     t_end = end_time_user.strftime("%Y-%m-%dT%H:%M:%S%z")
@@ -343,7 +377,7 @@ def gauge_pull_bom(gauge_numbers: List[str], start_time_user: datetime.date, end
         response = bm.request(bm.actions.GetObservation, gauge, prop, procedure, t_begin, t_end)
         # response_json = bm.xml_to_json(response.text)  
         ts = bm.parse_get_data(response)
-
+        print(ts)
         if ts.empty:
             ts = pd.DataFrame(columns=["DATASOURCEID","SITEID",	"SUBJECTID", "DATETIME", "VALUE", "QUALITYCODE"])
             collect.append(ts)
@@ -355,10 +389,12 @@ def gauge_pull_bom(gauge_numbers: List[str], start_time_user: datetime.date, end
             ts["DATETIME"] = ts.index.to_pydatetime()
             ts["DATETIME"] = pd.to_datetime(ts["DATETIME"])
             ts["DATETIME"] = ts["DATETIME"].apply(fixdate)
-            if var == "F":
+            if var.lower() == "f":
                 ts["VALUE"] = 86.4*ts["Value[cumec]"] # Converting it from Cumec to ML/day
-            else:
-                ts["VALUE"] = ts["Value[meter]"]
+            elif var.lower() in ['l', 'll', 'sl']:
+                ts["VALUE"] = ts["Value[m]"]
+            elif var.lower() == 'sv':
+                ts["VALUE"] = ts["Value[Ml]"]
             ts["QUALITYCODE"] = ts["Quality"]
             ts.reset_index(drop=True, inplace=True)
             collect.append(ts[["DATASOURCEID","SITEID",	"SUBJECTID", "DATETIME", "VALUE", "QUALITYCODE"]])
