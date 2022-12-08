@@ -8,6 +8,7 @@ import logging
 import warnings
 import requests
 import pandas as pd
+import bom_water
 from mdba_gauge_getter import gauge_getter
 from mocks import MockRequestLib, MockCallStateAPI, \
     MockPandasDataFrame, MockGaugePullBOM, MockExtractData, \
@@ -227,7 +228,110 @@ def test_gauge_pull_bom():
     assert(len(calls)) == 1
     data = calls[0][0]
     assert data == ['6']
+    b = MockGaugePullBOM()
+
+def test_bom_params():
+    bm = bom_water.BomWater()
     
+    r1 = gauge_getter.bom_params('F', 'hour', 'mean')
+    assert r1[0] == bm.properties.Water_Course_Discharge
+    assert r1[1] == bm.procedures.Pat4_C_B_1_HourlyMean 
+
+    r1 = gauge_getter.bom_params('F', 'day', 'min')
+    assert r1[0] == bm.properties.Water_Course_Discharge
+    assert r1[1] == bm.procedures.Pat4_C_B_1_DailyMin 
+ 
+    r1 = gauge_getter.bom_params('F', 'day', 'average')
+    assert r1[0] == bm.properties.Water_Course_Discharge
+    assert r1[1] == bm.procedures.Pat4_C_B_1_DailyMean 
+  
+    r1 = gauge_getter.bom_params('F', 'day', 'max')
+    assert r1[0] == bm.properties.Water_Course_Discharge
+    assert r1[1] == bm.procedures.Pat4_C_B_1_DailyMax 
+
+    r1 = gauge_getter.bom_params('F', 'month', 'avg')
+    assert r1[0] == bm.properties.Water_Course_Discharge
+    assert r1[1] == bm.procedures.Pat4_C_B_1_MonthlyMean 
+        
+    r1 = gauge_getter.bom_params('F', 'year', 'av')
+    assert r1[0] == bm.properties.Water_Course_Discharge
+    assert r1[1] == bm.procedures.Pat4_C_B_1_YearlyMean     
+
+
+    r1 = gauge_getter.bom_params('L', 'hour', 'average')
+    assert r1[0] == bm.properties.Water_Course_Level
+    assert r1[1] == bm.procedures.Pat3_C_B_1_HourlyMean 
+
+    r1 = gauge_getter.bom_params('L', 'day', 'min')
+    assert r1[0] == bm.properties.Water_Course_Level
+    assert r1[1] == bm.procedures.Pat3_C_B_1_DailyMin 
+ 
+    r1 = gauge_getter.bom_params('L', 'day', 'mean')
+    assert r1[0] == bm.properties.Water_Course_Level
+    assert r1[1] == bm.procedures.Pat3_C_B_1_DailyMean 
+  
+    r1 = gauge_getter.bom_params('L', 'day', 'max')
+    assert r1[0] == bm.properties.Water_Course_Level
+    assert r1[1] == bm.procedures.Pat3_C_B_1_DailyMax 
+
+    r1 = gauge_getter.bom_params('L', 'month', 'avg')
+    assert r1[0] == bm.properties.Water_Course_Level
+    assert r1[1] == bm.procedures.Pat3_C_B_1_MonthlyMean 
+        
+    r1 = gauge_getter.bom_params('L', 'year', 'av')
+    assert r1[0] == bm.properties.Water_Course_Level
+    assert r1[1] == bm.procedures.Pat3_C_B_1_YearlyMean 
+        
+
+    r1 = gauge_getter.bom_params('SL', 'hour', 'average')
+    assert r1[0] == bm.properties.Storage_Level
+    assert r1[1] == bm.procedures.Pat7_C_B_1_HourlyMean 
+
+    r1 = gauge_getter.bom_params('SL', 'day', 'min')
+    assert r1[0] == bm.properties.Storage_Level
+    assert r1[1] == bm.procedures.Pat7_C_B_1_DailyMin 
+ 
+    r1 = gauge_getter.bom_params('SL', 'day', 'mean')
+    assert r1[0] == bm.properties.Storage_Level
+    assert r1[1] == bm.procedures.Pat7_C_B_1_DailyMean 
+  
+    r1 = gauge_getter.bom_params('SL', 'day', 'max')
+    assert r1[0] == bm.properties.Storage_Level
+    assert r1[1] == bm.procedures.Pat7_C_B_1_DailyMax 
+
+    r1 = gauge_getter.bom_params('SL', 'month', 'avg')
+    assert r1[0] == bm.properties.Storage_Level
+    assert r1[1] == bm.procedures.Pat7_C_B_1_MonthlyMean 
+        
+    r1 = gauge_getter.bom_params('SL', 'year', 'av')
+    assert r1[0] == bm.properties.Storage_Level
+    assert r1[1] == bm.procedures.Pat7_C_B_1_YearlyMean 
+        
+
+    r1 = gauge_getter.bom_params('SV', 'hour', 'average')
+    assert r1[0] == bm.properties.Storage_Volume
+    assert r1[1] == bm.procedures.Pat6_C_B_1_HourlyMean 
+
+    r1 = gauge_getter.bom_params('SV', 'day', 'min')
+    assert r1[0] == bm.properties.Storage_Volume
+    assert r1[1] == bm.procedures.Pat6_C_B_1_DailyMin 
+ 
+    r1 = gauge_getter.bom_params('SV', 'day', 'mean')
+    assert r1[0] == bm.properties.Storage_Volume
+    assert r1[1] == bm.procedures.Pat6_C_B_1_DailyMean 
+  
+    r1 = gauge_getter.bom_params('SV', 'day', 'max')
+    assert r1[0] == bm.properties.Storage_Volume
+    assert r1[1] == bm.procedures.Pat6_C_B_1_DailyMax 
+
+    r1 = gauge_getter.bom_params('SV', 'month', 'avg')
+    assert r1[0] == bm.properties.Storage_Volume
+    assert r1[1] == bm.procedures.Pat6_C_B_1_MonthlyMean 
+        
+    r1 = gauge_getter.bom_params('SV', 'year', 'av')
+    assert r1[0] == bm.properties.Storage_Volume
+    assert r1[1] == bm.procedures.Pat6_C_B_1_YearlyMean 
+
 
 def test_process_gauge_pull():
     mock_call_state_api = MockCallStateAPI()
