@@ -9,7 +9,7 @@
 ![Pylint%20Rating](https://img.shields.io/badge/Pylint%20Rating-7.8-green)
 [![CI](https://github.com/agile-analytics-au/MDBA_Gauge_Getter/actions/workflows/tox-tests.yml/badge.svg)]()
 [![PyPI](https://img.shields.io/pypi/v/mdba-gauge-getter)](https://pypi.org/project/mdba-gauge-getter/)
-
+[![DOI](https://zenodo.org/badge/431267159.svg)](https://zenodo.org/badge/latestdoi/431267159)
 </span>
 
 ## Description
