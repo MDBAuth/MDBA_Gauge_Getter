@@ -1,0 +1,20 @@
+cff-version: 0.4.5
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: Bradshaw
+    given-names: Benjamin
+  - family-names: Job
+    given-names: Martin
+  - family-names: Junqueira
+    given-names: Pedro
+  - family-names: Palmer
+    given-names: Lara
+  - family-names: Buerle
+    given-names: Markus
+  - family-names: Habib
+    given-names: Ahsanul
+
+title: "MDBA_Gauge_Getter"
+version: 0.4.5
+doi: 10.5281/zenodo.7435693
+date-released: 2022-12-14
