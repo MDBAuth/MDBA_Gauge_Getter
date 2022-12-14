@@ -299,11 +299,11 @@ def test_bom_params():
     assert r1[0] == bm.properties.Storage_Level
     assert r1[1] == bm.procedures.Pat7_C_B_1_DailyMax 
 
-    r1 = gauge_getter.bom_params('SL', 'month', 'avg')
+    r1 = gauge_getter.bom_params('LL', 'month', 'avg')
     assert r1[0] == bm.properties.Storage_Level
     assert r1[1] == bm.procedures.Pat7_C_B_1_MonthlyMean 
         
-    r1 = gauge_getter.bom_params('SL', 'year', 'av')
+    r1 = gauge_getter.bom_params('LL', 'year', 'av')
     assert r1[0] == bm.properties.Storage_Level
     assert r1[1] == bm.procedures.Pat7_C_B_1_YearlyMean 
         

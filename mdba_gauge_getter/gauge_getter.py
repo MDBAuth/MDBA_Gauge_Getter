@@ -325,7 +325,7 @@ def bom_params(var, interval, data_type):
             procedure = bm.procedures.Pat3_C_B_1_MonthlyMean
         elif (interval.lower() in ['year', 'y']):
             procedure = bm.procedures.Pat3_C_B_1_YearlyMean
-    elif var == "SL":
+    elif var in ["LL", "SL"]:
         prop = bm.properties.Storage_Level
         if (interval.lower() in ['hour', 'h']):
             procedure = bm.procedures.Pat7_C_B_1_HourlyMean
