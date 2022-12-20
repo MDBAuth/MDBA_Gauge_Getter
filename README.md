@@ -15,7 +15,6 @@
 ## Description
 MDBA Gauge Getter provides a unified and simple interface to collect surface water data from the following state water portals:
 
-
 |State|Site|Source|
 | --- | --- | --- |
 | NSW | realtimedata.waternsw.com.au |CP|
