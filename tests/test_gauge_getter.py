@@ -373,7 +373,7 @@ def dict_matches(d1: Dict[str, Any], d2: Dict[str, Any]):
 
 def test_sort_gauges_by_state():
     gauge_getter.gauge_data_uri = StringIO(MOCK_CSV)
-    print(gauge_getter.gauge_data_uri)
+    # print(gauge_getter.gauge_data_uri)
     gauge_getter.init()
     ret = gauge_getter.sort_gauges_by_state(['1', '2', '3', '4', '5', '6', '10'])
     expect = {'NSW': ['1', '3'], 'QLD': ['2', '3', '4'], 'VIC': ['4', '5'], 'SA': ['6'], 'rest': ['10']}
