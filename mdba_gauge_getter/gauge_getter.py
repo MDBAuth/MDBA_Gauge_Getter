@@ -377,7 +377,6 @@ def gauge_pull_bom(gauge_numbers: List[str], start_time_user: datetime.date, end
         response = bm.request(bm.actions.GetObservation, gauge, prop, procedure, t_begin, t_end)
         # response_json = bm.xml_to_json(response.text)  
         ts = bm.parse_get_data(response)
-        print(ts)
         if ts.empty:
             ts = pd.DataFrame(columns=["DATASOURCEID","SITEID",	"SUBJECTID", "DATETIME", "VALUE", "QUALITYCODE"])
             collect.append(ts)
