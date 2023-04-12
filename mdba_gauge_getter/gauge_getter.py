@@ -62,6 +62,18 @@ STATE_LAKELEVEL_VarTo = {
     'QLD' : Decimal('130.00')
 }
 
+STATE_STORAGEVOLUME_VarFrom = {
+    'NSW' : Decimal('130.00'),
+    'VIC' : Decimal('130.00'),
+    'QLD' : Decimal('130.00')
+}
+
+STATE_STORAGEVOLUME_VarTo = {
+    'NSW': Decimal('136.00'),
+    'VIC' : Decimal('136.00'),
+    'QLD' : Decimal('136.00')
+}
+
 MAX_SITES_PER_REQUEST = {
     'NSW': 5,
     'VIC': 5,
@@ -155,6 +167,13 @@ def call_state_api(state: str, indicative_sites: List[str], start_time: datetime
     elif (var=="LL"):
         var_from = STATE_LAKELEVEL_VarFrom[state]
         var_to = STATE_LAKELEVEL_VarTo[state]
+
+    elif (var=="SV"):
+        var_from = STATE_STORAGEVOLUME_VarFrom[state]
+        var_to = STATE_STORAGEVOLUME_VarTo[state]
+
+    else:
+        raise AttributeError("The input 'var' takes 'L', 'F', 'LL' or 'SV' only.") # TODO: Implement a more accurate exception handling
 
     sites = ','.join(indicative_sites)
     data = {
