@@ -64,8 +64,8 @@ STATE_LAKELEVEL_VarTo = {
 
 STATE_STORAGEVOLUME_VarFrom = {
     'NSW' : Decimal('130.00'),
-    'VIC' : Decimal('130.00'),
-    'QLD' : Decimal('130.00')
+    'VIC' : Decimal('136.00'),
+    'QLD' : Decimal('136.00')
 }
 
 STATE_STORAGEVOLUME_VarTo = {
@@ -220,8 +220,7 @@ def call_state_api(state: str, indicative_sites: List[str], start_time: datetime
     
     # TODO-idiosyncratic the use of JSON in the query string seems werid, this should be a HTTP POST
     # but requires endpoints to support it..
-    
-    log.debug(f'ending request to URL \'{req_url}\'')
+    log.debug(f'Sending request to URL \'{req_url}\'')
     r = requests.get(req_url)
     if not r.status_code == 200: 
         raise requests.HTTPError(f'Request to \'{url}\' failed with HTTP Response code '
@@ -416,6 +415,7 @@ def gauge_pull_bom(gauge_numbers: List[str], start_time_user: datetime.date, end
             ts["QUALITYCODE"] = ts["Quality"]
             ts.reset_index(drop=True, inplace=True)
             collect.append(ts[["DATASOURCEID","SITEID",	"SUBJECTID", "DATETIME", "VALUE", "QUALITYCODE"]])
+            log.info(f'BOM Data DF: {collect}')
 
     output = pd.concat(collect)
     # log.info(f'BOM Data DF: {output}')
@@ -443,12 +443,32 @@ def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_tim
 
     # log.info(f'Gauges by state is: {gauges_by_state}')
     data: List[List[List[Any]]] = []
-    data += process_gauge_pull(gauges_by_state['NSW'], 'NSW', 'CP', start_time_user,
+    nsw = process_gauge_pull(gauges_by_state['NSW'], 'NSW', 'CP', start_time_user,
                                end_time_user, var, interval, data_type)
-    data += process_gauge_pull(gauges_by_state['VIC'], 'VIC', 'PUBLISH', start_time_user,
+    if not len(nsw) and len(gauges_by_state['NSW']) > 0:
+        log.warn(f'Data not available from NSW API, querying BOM...')
+        gauges_by_state['BOM'] = gauges_by_state['NSW']
+        nsw += gauge_pull_bom(gauges_by_state['BOM'], start_time_user, 
+                               end_time_user, var, interval, data_type)   
+    data += nsw
+
+    vic = process_gauge_pull(gauges_by_state['VIC'], 'VIC', 'PUBLISH', start_time_user,
                                end_time_user, var, interval, data_type)
-    data += process_gauge_pull(gauges_by_state['QLD'], 'QLD', 'AT', start_time_user,
-                               end_time_user, var, interval, data_type) 
+    if not len(vic) and len(gauges_by_state['VIC']) > 0:
+        log.warn(f'Data not available from VIC API, querying BOM...')
+        gauges_by_state['BOM'] = gauges_by_state['VIC']
+        vic += gauge_pull_bom(gauges_by_state['BOM'], start_time_user, 
+                               end_time_user, var, interval, data_type)   
+    data += vic
+
+    qld = process_gauge_pull(gauges_by_state['QLD'], 'QLD', 'AT', start_time_user,
+                               end_time_user, var, interval, data_type)
+    if not len(qld) and len(gauges_by_state['QLD']) > 0:
+        log.warn(f'Data not available from QLD API, querying BOM...')
+        gauges_by_state['BOM'] = gauges_by_state['QLD']
+        qld += gauge_pull_bom(gauges_by_state['BOM'], start_time_user, 
+                               end_time_user, var, interval, data_type)   
+    data += qld
     # log.info(f'State data:{data}')
     if 'BOM' in gauges_by_state:                          
         data += gauge_pull_bom(gauges_by_state['BOM'], start_time_user, 

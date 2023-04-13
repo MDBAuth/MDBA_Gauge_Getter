@@ -225,9 +225,9 @@ def test_gauge_pull_bom():
 
     calls = b.calls
     warnings.warn(UserWarning(f'\n#Calls: {len(calls)}\n{calls}'))
-    assert(len(calls)) == 1
+    assert(len(calls)) == 4
     data = calls[0][0]
-    assert data == ['6']
+    assert data == ['1','3']
     b = MockGaugePullBOM()
 
 def test_bom_params():

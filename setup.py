@@ -1,5 +1,4 @@
 import setuptools
-
 import sys
 
 sys.path[0:0] = ['mdba_gauge_getter']
@@ -34,7 +33,7 @@ setuptools.setup(
         "mdba_gauge_getter",
     ],
     install_requires=[
-        "pandas",
+        "pandas==1.3.5",
         "requests",
         "bomwater",
     ],
