@@ -74,6 +74,42 @@ STATE_STORAGEVOLUME_VarTo = {
     'QLD' : Decimal('136.00')
 }
 
+STATE_PRECIP_VarFrom = {
+    'NSW' : Decimal('10.00'),
+    'VIC' : Decimal('10.00'),
+    'QLD' : Decimal('10.00')
+}
+
+STATE_PRECIP_VarTo = {
+    'NSW' : Decimal('10.00'),
+    'VIC' : Decimal('10.00'),
+    'QLD' : Decimal('10.00')
+}
+
+STATE_DO_VarFrom = {
+    'NSW' : Decimal('2351.00'),
+    'VIC' : Decimal('2351.00'),
+    'QLD' : Decimal('2351.00')
+}
+
+STATE_DO_VarTo = {
+    'NSW' : Decimal('2351.00'),
+    'VIC' : Decimal('2351.00'),
+    'QLD' : Decimal('2351.00')
+}
+
+STATE_WATERTEMP_VarFrom = {
+    'NSW' : Decimal('2080.00'),
+    'VIC' : Decimal('2080.00'),
+    'QLD' : Decimal('2080.00')
+}
+
+STATE_WATERTEMP_VarTo = {
+    'NSW' : Decimal('2080.00'),
+    'VIC' : Decimal('2080.00'),
+    'QLD' : Decimal('2080.00')
+}
+
 MAX_SITES_PER_REQUEST = {
     'NSW': 5,
     'VIC': 5,
@@ -172,8 +208,20 @@ def call_state_api(state: str, indicative_sites: List[str], start_time: datetime
         var_from = STATE_STORAGEVOLUME_VarFrom[state]
         var_to = STATE_STORAGEVOLUME_VarTo[state]
 
+    elif (var=="P"):
+        var_from = STATE_PRECIP_VarFrom[state]
+        var_to = STATE_PRECIP_VarTo[state]
+
+    elif (var=="DO"):
+        var_from = STATE_DO_VarFrom[state]
+        var_to = STATE_DO_VarTo[state]
+
+    elif (var=="WT"):
+        var_from = STATE_WATERTEMP_VarFrom[state]
+        var_to = STATE_WATERTEMP_VarTo[state]
+
     else:
-        raise AttributeError("The input 'var' takes 'L', 'F', 'LL' or 'SV' only.") # TODO: Implement a more accurate exception handling
+        raise AttributeError("The input 'var' takes 'L', 'F', 'LL', 'SV', 'P', 'DO', 'WT' only.") # TODO: Implement a more accurate exception handling
 
     sites = ','.join(indicative_sites)
     data = {
@@ -373,6 +421,37 @@ def bom_params(var, interval, data_type):
             procedure = bm.procedures.Pat6_C_B_1_MonthlyMean
         elif (interval.lower() in ['year', 'y']):
             procedure = bm.procedures.Pat6_C_B_1_YearlyMean
+
+    elif var == "WT":
+        prop = bm.properties.Water_Temperature
+        if (interval.lower() in ['hour', 'h']):
+            raise NotImplementedError('Hourly data not available for Water Temp')
+        elif (interval.lower() in ['day', 'd']):
+            if (data_type in ['min', 'minimum']):
+                procedure = bm.procedures.Pat1_C_B_1_DailyMin
+            elif (data_type in ['mean', 'avg', 'average', 'av', 'a']):
+                procedure = bm.procedures.Pat1_C_B_1_DailyMean
+            elif (data_type in ['max', 'maximum']):
+                procedure = bm.procedures.Pat1_C_B_1_DailyMax
+        elif (interval.lower() in ['month', 'm']):
+            procedure = bm.procedures.Pat1_C_B_1_MonthlyMean
+        elif (interval.lower() in ['year', 'y']):
+            procedure = bm.procedures.Pat1_C_B_1_YearlyMean
+
+    elif var == "P":
+        prop = bm.properties.Rainfall
+        if (interval.lower() in ['hour', 'h']):
+            raise NotImplementedError('Hourly data not available for Precipitation')
+        elif (interval.lower() in ['day', 'd']):
+            procedure = bm.procedures.Pat2_C_B_1_DailyTot09
+        elif (interval.lower() in ['month', 'm']):
+            procedure = bm.procedures.Pat2_C_B_1_MonthlyTot24
+        elif (interval.lower() in ['year', 'y']):
+            procedure = bm.procedures.Pat2_C_B_1_YearlyTot24
+
+    elif var == "DO":
+            raise AttributeError("Var 'DO' not available on the BoM API")
+
     return prop, procedure
 
 def gauge_pull_bom(gauge_numbers: List[str], start_time_user: datetime.date, end_time_user: datetime.date,
@@ -412,6 +491,10 @@ def gauge_pull_bom(gauge_numbers: List[str], start_time_user: datetime.date, end
                 ts["VALUE"] = ts["Value[m]"]
             elif var.lower() == 'sv':
                 ts["VALUE"] = ts["Value[Ml]"]
+            elif var.lower() == 'wt':
+                ts["VALUE"] = ts["Value[°C]"]
+            elif var.lower() == 'p':
+                ts["VALUE"] = ts["Value[mm]"]
             ts["QUALITYCODE"] = ts["Quality"]
             ts.reset_index(drop=True, inplace=True)
             collect.append(ts[["DATASOURCEID","SITEID",	"SUBJECTID", "DATETIME", "VALUE", "QUALITYCODE"]])
