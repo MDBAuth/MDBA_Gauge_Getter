@@ -127,7 +127,7 @@ def init() -> None:
     gauges = pd.read_csv(gauge_data_uri, skiprows=1, skipfooter=1,
                          names=['gauge_name', 'gauge_number',
                                 'gauge_owner', 'lat', 'long'], engine='python')
-    gauges['State'] = gauges['gauge_owner'].str.strip().str.split(' ', 1).str[0]
+    gauges['State'] = gauges['gauge_owner'].apply(lambda x: x.strip().split(' ', 1)[0])
     gauges = gauges.drop(['lat', 'long', 'gauge_owner'], axis=1)
 
 
