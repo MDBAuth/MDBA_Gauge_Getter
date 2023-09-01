@@ -22,21 +22,21 @@ setuptools.setup(
     },
     classifiers=[
         "Operating System :: OS Independent",
-        "Programming Language :: Python :: 3",
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
         'Framework :: Pytest',
     ],
     packages=[
         "mdba_gauge_getter",
     ],
     install_requires=[
-        "pandas==1.3.5",
+        "pandas",
         "requests",
         "bomwater",
     ],
     package_data={"": ["data/*.csv"]},
-    python_requires=">=3.6",
+    python_requires=">=3.7",
 )
