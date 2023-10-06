@@ -117,7 +117,7 @@ MAX_SITES_PER_REQUEST = {
     'SA' : 5 
 }
 
-BARRAGE_GAUGES =("A4261002","A4260508", "A4260506")
+BARRAGE_GAUGES ={"A4261002","A4260508", "A4260506"}
 
 
 def init() -> None:
@@ -511,7 +511,7 @@ def gauge_pull_bom(gauge_numbers: List[str], start_time_user: datetime.date, end
 def gauge_pull_aq(gauge_numbers: List[str], start_time_user: datetime.date, end_time_user: datetime.date,
                var: str = 'F', interval: str = 'day', data_type: str = 'mean') -> pd.DataFrame:
     output = []
-    # log.info(f'AQ gaugepull')
+    log.info(f'AQ gaugepull')
 
     return output
 
@@ -566,7 +566,7 @@ def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_tim
         data += gauge_pull_bom(gauges_by_state['BOM'], start_time_user, 
                                end_time_user, var, interval, data_type)   
         # log.info(f'BOM data:{data}')
-    barrage_gauges=[set(gauges_by_state["rest"]) & BARRAGE_GAUGES]
+    barrage_gauges=list(set(gauges_by_state["rest"]) & BARRAGE_GAUGES)
     if barrage_gauges:
         data += gauge_pull_aq(barrage_gauges, gauges_by_state['BOM'], start_time_user, 
                                end_time_user, var, interval, data_type)
