@@ -62,62 +62,12 @@ STATE_LAKELEVEL_VarTo = {
     'QLD' : Decimal('130.00')
 }
 
-STATE_STORAGEVOLUME_VarFrom = {
-    'NSW' : Decimal('130.00'),
-    'VIC' : Decimal('136.00'),
-    'QLD' : Decimal('136.00')
-}
-
-STATE_STORAGEVOLUME_VarTo = {
-    'NSW': Decimal('136.00'),
-    'VIC' : Decimal('136.00'),
-    'QLD' : Decimal('136.00')
-}
-
-STATE_PRECIP_VarFrom = {
-    'NSW' : Decimal('10.00'),
-    'VIC' : Decimal('10.00'),
-    'QLD' : Decimal('10.00')
-}
-
-STATE_PRECIP_VarTo = {
-    'NSW' : Decimal('10.00'),
-    'VIC' : Decimal('10.00'),
-    'QLD' : Decimal('10.00')
-}
-
-STATE_DO_VarFrom = {
-    'NSW' : Decimal('2351.00'),
-    'VIC' : Decimal('2351.00'),
-    'QLD' : Decimal('2351.00')
-}
-
-STATE_DO_VarTo = {
-    'NSW' : Decimal('2351.00'),
-    'VIC' : Decimal('2351.00'),
-    'QLD' : Decimal('2351.00')
-}
-
-STATE_WATERTEMP_VarFrom = {
-    'NSW' : Decimal('2080.00'),
-    'VIC' : Decimal('2080.00'),
-    'QLD' : Decimal('2080.00')
-}
-
-STATE_WATERTEMP_VarTo = {
-    'NSW' : Decimal('2080.00'),
-    'VIC' : Decimal('2080.00'),
-    'QLD' : Decimal('2080.00')
-}
-
 MAX_SITES_PER_REQUEST = {
     'NSW': 5,
     'VIC': 5,
     'QLD': 5,
     'SA' : 5 
 }
-
-BARRAGE_GAUGES =("A4261002","A4260508", "A4260506")
 
 
 def init() -> None:
@@ -129,7 +79,7 @@ def init() -> None:
     gauges = pd.read_csv(gauge_data_uri, skiprows=1, skipfooter=1,
                          names=['gauge_name', 'gauge_number',
                                 'gauge_owner', 'lat', 'long'], engine='python')
-    gauges['State'] = gauges['gauge_owner'].apply(lambda x: x.strip().split(' ', 1)[0])
+    gauges['State'] = gauges['gauge_owner'].str.strip().str.split(' ', 1).str[0]
     gauges = gauges.drop(['lat', 'long', 'gauge_owner'], axis=1)
 
 
@@ -206,25 +156,6 @@ def call_state_api(state: str, indicative_sites: List[str], start_time: datetime
         var_from = STATE_LAKELEVEL_VarFrom[state]
         var_to = STATE_LAKELEVEL_VarTo[state]
 
-    elif (var=="SV"):
-        var_from = STATE_STORAGEVOLUME_VarFrom[state]
-        var_to = STATE_STORAGEVOLUME_VarTo[state]
-
-    elif (var=="P"):
-        var_from = STATE_PRECIP_VarFrom[state]
-        var_to = STATE_PRECIP_VarTo[state]
-
-    elif (var=="DO"):
-        var_from = STATE_DO_VarFrom[state]
-        var_to = STATE_DO_VarTo[state]
-
-    elif (var=="WT"):
-        var_from = STATE_WATERTEMP_VarFrom[state]
-        var_to = STATE_WATERTEMP_VarTo[state]
-
-    else:
-        raise AttributeError("The input 'var' takes 'L', 'F', 'LL', 'SV', 'P', 'DO', 'WT' only.") # TODO: Implement a more accurate exception handling
-
     sites = ','.join(indicative_sites)
     data = {
         'params': {
@@ -270,7 +201,8 @@ def call_state_api(state: str, indicative_sites: List[str], start_time: datetime
     
     # TODO-idiosyncratic the use of JSON in the query string seems werid, this should be a HTTP POST
     # but requires endpoints to support it..
-    log.debug(f'Sending request to URL \'{req_url}\'')
+    
+    log.debug(f'ending request to URL \'{req_url}\'')
     r = requests.get(req_url)
     if not r.status_code == 200: 
         raise requests.HTTPError(f'Request to \'{url}\' failed with HTTP Response code '
@@ -361,110 +293,26 @@ def fixdate(timestamp):
     #datetime.astimzone('Australia/Sydney',date) #date.tz_localize('Australia/Sydney')   #datetime.datetime.strptime(date, '%Y-%m-%dT%H:%M:%S')
     return date
 
-def bom_params(var, interval, data_type):
-    bm = bom_water.BomWater()
-    if var == "F":
-        prop = bm.properties.Water_Course_Discharge
-        if (interval.lower() in ['hour', 'h']):
-            procedure = bm.procedures.Pat4_C_B_1_HourlyMean
-        elif (interval.lower() in ['day', 'd']):
-            if (data_type in ['min', 'minimum']):
-                procedure = bm.procedures.Pat4_C_B_1_DailyMin
-            elif (data_type in ['mean', 'avg', 'average', 'av', 'a']):
-                procedure = bm.procedures.Pat4_C_B_1_DailyMean
-            elif (data_type in ['max', 'maximum']):
-                procedure = bm.procedures.Pat4_C_B_1_DailyMax        
-        elif (interval.lower() in ['month', 'm']):
-            procedure = bm.procedures.Pat4_C_B_1_MonthlyMean
-        elif (interval.lower() in ['year', 'y']):
-            procedure = bm.procedures.Pat4_C_B_1_YearlyMean
-    elif var == "L":
-        prop = bm.properties.Water_Course_Level
-        if (interval.lower() in ['hour', 'h']):
-            procedure = bm.procedures.Pat3_C_B_1_HourlyMean
-        elif (interval.lower() in ['day', 'd']):
-            if (data_type in ['min', 'minimum']):
-                procedure = bm.procedures.Pat3_C_B_1_DailyMin
-            elif (data_type in ['mean', 'avg', 'average', 'av', 'a']):
-                procedure = bm.procedures.Pat3_C_B_1_DailyMean
-            elif (data_type in ['max', 'maximum']):
-                procedure = bm.procedures.Pat3_C_B_1_DailyMax        
-        elif (interval.lower() in ['month', 'm']):
-            procedure = bm.procedures.Pat3_C_B_1_MonthlyMean
-        elif (interval.lower() in ['year', 'y']):
-            procedure = bm.procedures.Pat3_C_B_1_YearlyMean
-    elif var in ["LL", "SL"]:
-        prop = bm.properties.Storage_Level
-        if (interval.lower() in ['hour', 'h']):
-            procedure = bm.procedures.Pat7_C_B_1_HourlyMean
-        elif (interval.lower() in ['day', 'd']):
-            if (data_type in ['min', 'minimum']):
-                procedure = bm.procedures.Pat7_C_B_1_DailyMin
-            elif (data_type in ['mean', 'avg', 'average', 'av', 'a']):
-                procedure = bm.procedures.Pat7_C_B_1_DailyMean
-            elif (data_type in ['max', 'maximum']):
-                procedure = bm.procedures.Pat7_C_B_1_DailyMax        
-        elif (interval.lower() in ['month', 'm']):
-            procedure = bm.procedures.Pat7_C_B_1_MonthlyMean
-        elif (interval.lower() in ['year', 'y']):
-            procedure = bm.procedures.Pat7_C_B_1_YearlyMean
-    elif var == "SV":
-        prop = bm.properties.Storage_Volume
-        if (interval.lower() in ['hour', 'h']):
-            procedure = bm.procedures.Pat6_C_B_1_HourlyMean
-        elif (interval.lower() in ['day', 'd']):
-            if (data_type in ['min', 'minimum']):
-                procedure = bm.procedures.Pat6_C_B_1_DailyMin
-            elif (data_type in ['mean', 'avg', 'average', 'av', 'a']):
-                procedure = bm.procedures.Pat6_C_B_1_DailyMean
-            elif (data_type in ['max', 'maximum']):
-                procedure = bm.procedures.Pat6_C_B_1_DailyMax        
-        elif (interval.lower() in ['month', 'm']):
-            procedure = bm.procedures.Pat6_C_B_1_MonthlyMean
-        elif (interval.lower() in ['year', 'y']):
-            procedure = bm.procedures.Pat6_C_B_1_YearlyMean
-
-    elif var == "WT":
-        prop = bm.properties.Water_Temperature
-        if (interval.lower() in ['hour', 'h']):
-            raise NotImplementedError('Hourly data not available for Water Temp')
-        elif (interval.lower() in ['day', 'd']):
-            if (data_type in ['min', 'minimum']):
-                procedure = bm.procedures.Pat1_C_B_1_DailyMin
-            elif (data_type in ['mean', 'avg', 'average', 'av', 'a']):
-                procedure = bm.procedures.Pat1_C_B_1_DailyMean
-            elif (data_type in ['max', 'maximum']):
-                procedure = bm.procedures.Pat1_C_B_1_DailyMax
-        elif (interval.lower() in ['month', 'm']):
-            procedure = bm.procedures.Pat1_C_B_1_MonthlyMean
-        elif (interval.lower() in ['year', 'y']):
-            procedure = bm.procedures.Pat1_C_B_1_YearlyMean
-
-    elif var == "P":
-        prop = bm.properties.Rainfall
-        if (interval.lower() in ['hour', 'h']):
-            raise NotImplementedError('Hourly data not available for Precipitation')
-        elif (interval.lower() in ['day', 'd']):
-            procedure = bm.procedures.Pat2_C_B_1_DailyTot09
-        elif (interval.lower() in ['month', 'm']):
-            procedure = bm.procedures.Pat2_C_B_1_MonthlyTot24
-        elif (interval.lower() in ['year', 'y']):
-            procedure = bm.procedures.Pat2_C_B_1_YearlyTot24
-
-    elif var == "DO":
-            raise AttributeError("Var 'DO' not available on the BoM API")
-
-    return prop, procedure
-
 def gauge_pull_bom(gauge_numbers: List[str], start_time_user: datetime.date, end_time_user: datetime.date,
                var: str = 'F', interval: str = 'day', data_type: str = 'mean') -> pd.DataFrame:
     '''
     Given a list of gauge numbers, breaks the list into individual gauges, and uses BomWater to get data, 
     returning as a Pandas dataframe object in a gauge getter format.
     '''
-    bm = bom_water.BomWater()
     
-    prop, procedure = bom_params(var, interval, data_type)
+    bm = bom_water.BomWater()
+
+    if (interval == 'day') & (data_type == 'mean'):
+        procedure = bm.procedures.Pat4_C_B_1_DailyMean
+    
+    if var == "F":
+        prop = bm.properties.Water_Course_Discharge
+        if (interval == 'day') & (data_type == 'mean'):
+          procedure = bm.procedures.Pat4_C_B_1_DailyMean
+    if var == "L":
+        prop = bm.properties.Water_Course_Level
+        if (interval == 'day') & (data_type == 'mean'):
+          procedure = bm.procedures.Pat4_C_B_1_DailyMean
     
     t_begin = start_time_user.strftime("%Y-%m-%dT%H:%M:%S%z")
     t_end = end_time_user.strftime("%Y-%m-%dT%H:%M:%S%z")
@@ -476,6 +324,7 @@ def gauge_pull_bom(gauge_numbers: List[str], start_time_user: datetime.date, end
         response = bm.request(bm.actions.GetObservation, gauge, prop, procedure, t_begin, t_end)
         # response_json = bm.xml_to_json(response.text)  
         ts = bm.parse_get_data(response)
+
         if ts.empty:
             ts = pd.DataFrame(columns=["DATASOURCEID","SITEID",	"SUBJECTID", "DATETIME", "VALUE", "QUALITYCODE"])
             collect.append(ts)
@@ -487,32 +336,18 @@ def gauge_pull_bom(gauge_numbers: List[str], start_time_user: datetime.date, end
             ts["DATETIME"] = ts.index.to_pydatetime()
             ts["DATETIME"] = pd.to_datetime(ts["DATETIME"])
             ts["DATETIME"] = ts["DATETIME"].apply(fixdate)
-            if var.lower() == "f":
+            if var == "F":
                 ts["VALUE"] = 86.4*ts["Value[cumec]"] # Converting it from Cumec to ML/day
-            elif var.lower() in ['l', 'll', 'sl']:
-                ts["VALUE"] = ts["Value[m]"]
-            elif var.lower() == 'sv':
-                ts["VALUE"] = ts["Value[Ml]"]
-            elif var.lower() == 'wt':
-                ts["VALUE"] = ts["Value[°C]"]
-            elif var.lower() == 'p':
-                ts["VALUE"] = ts["Value[mm]"]
+            else:
+                ts["VALUE"] = ts["Value[meter]"]
             ts["QUALITYCODE"] = ts["Quality"]
             ts.reset_index(drop=True, inplace=True)
             collect.append(ts[["DATASOURCEID","SITEID",	"SUBJECTID", "DATETIME", "VALUE", "QUALITYCODE"]])
-            log.info(f'BOM Data DF: {collect}')
 
     output = pd.concat(collect)
     # log.info(f'BOM Data DF: {output}')
     output = output.values.tolist()
     # log.info(f'BOM Data Dict: {output}')
-    return output
-
-def gauge_pull_aq(gauge_numbers: List[str], start_time_user: datetime.date, end_time_user: datetime.date,
-               var: str = 'F', interval: str = 'day', data_type: str = 'mean') -> pd.DataFrame:
-    output = []
-    # log.info(f'AQ gaugepull')
-
     return output
 
 def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_time_user: datetime.date,
@@ -535,41 +370,17 @@ def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_tim
 
     # log.info(f'Gauges by state is: {gauges_by_state}')
     data: List[List[List[Any]]] = []
-    nsw = process_gauge_pull(gauges_by_state['NSW'], 'NSW', 'CP', start_time_user,
+    data += process_gauge_pull(gauges_by_state['NSW'], 'NSW', 'CP', start_time_user,
                                end_time_user, var, interval, data_type)
-    if not len(nsw) and len(gauges_by_state['NSW']) > 0:
-        log.warn(f'Data not available from NSW API, querying BOM...')
-        gauges_by_state['BOM'] = gauges_by_state['NSW']
-        nsw += gauge_pull_bom(gauges_by_state['BOM'], start_time_user, 
-                               end_time_user, var, interval, data_type)   
-    data += nsw
-
-    vic = process_gauge_pull(gauges_by_state['VIC'], 'VIC', 'PUBLISH', start_time_user,
+    data += process_gauge_pull(gauges_by_state['VIC'], 'VIC', 'PUBLISH', start_time_user,
                                end_time_user, var, interval, data_type)
-    if not len(vic) and len(gauges_by_state['VIC']) > 0:
-        log.warn(f'Data not available from VIC API, querying BOM...')
-        gauges_by_state['BOM'] = gauges_by_state['VIC']
-        vic += gauge_pull_bom(gauges_by_state['BOM'], start_time_user, 
-                               end_time_user, var, interval, data_type)   
-    data += vic
-
-    qld = process_gauge_pull(gauges_by_state['QLD'], 'QLD', 'AT', start_time_user,
-                               end_time_user, var, interval, data_type)
-    if not len(qld) and len(gauges_by_state['QLD']) > 0:
-        log.warn(f'Data not available from QLD API, querying BOM...')
-        gauges_by_state['BOM'] = gauges_by_state['QLD']
-        qld += gauge_pull_bom(gauges_by_state['BOM'], start_time_user, 
-                               end_time_user, var, interval, data_type)   
-    data += qld
+    data += process_gauge_pull(gauges_by_state['QLD'], 'QLD', 'AT', start_time_user,
+                               end_time_user, var, interval, data_type) 
     # log.info(f'State data:{data}')
     if 'BOM' in gauges_by_state:                          
         data += gauge_pull_bom(gauges_by_state['BOM'], start_time_user, 
                                end_time_user, var, interval, data_type)   
         # log.info(f'BOM data:{data}')
-    barrage_gauges=[set(gauges_by_state["rest"]) & BARRAGE_GAUGES]
-    if barrage_gauges:
-        data += gauge_pull_aq(barrage_gauges, gauges_by_state['BOM'], start_time_user, 
-                               end_time_user, var, interval, data_type)
    
     cols = ['DATASOURCEID', 'SITEID', 'SUBJECTID', 'DATETIME', 'VALUE', 'QUALITYCODE']
     flow_data_frame = pd.DataFrame(data=data, columns=cols)
