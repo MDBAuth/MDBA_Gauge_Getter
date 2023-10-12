@@ -510,10 +510,30 @@ def gauge_pull_bom(gauge_numbers: List[str], start_time_user: datetime.date, end
 
 def gauge_pull_aq(gauge_numbers: List[str], start_time_user: datetime.date, end_time_user: datetime.date,
                var: str = 'F', interval: str = 'day', data_type: str = 'mean') -> pd.DataFrame:
-    output = []
-    log.info(f'AQ gaugepull')
 
-    return output
+    log.info(f'AQ gaugepull')
+    extracted_gauge=[]
+    for gauge in  gauge_numbers:
+        head ="https://water.data.sa.gov.au/Export/BulkExportJson?"
+        times ="DateRange=Custom&StartTime=2023-10-02 00:00:00&EndTime=2023-10-09 00:00:00&TimeZone=9.5"
+        dataset = "&Datasets[0].DatasetName=Discharge.Total%20barrage%20flow%40"+gauge
+        format = "&ExportFormat=json"
+        code = "&Datasets[0].Calculation=Instantaneous&Datasets[0].UnitId=241"
+
+        url = head+ times + dataset + format +code
+        log.info(url)
+
+        x = requests.get(url)
+
+        data = x.json()
+
+        extracted = []
+        for row in data['Rows']:
+            obsdate = datetime.datetime.strptime(str(row['Timestamp']), '%Y-%m-%dT%H:%M:%S%z').date()
+            objRow = ["SA", data["Datasets"][0]["LocationIdentifier"], 'WATER', obsdate, row["Points"][0]["Value"], data["Datasets"][0]["Unit"]]
+            extracted.append(objRow)
+        extracted_gauge.extend(extracted)
+    return extracted_gauge
 
 def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_time_user: datetime.date,
                var: str = 'F', interval: str = 'day', data_type: str = 'mean', data_source: str = 'state') -> pd.DataFrame:
@@ -568,10 +588,10 @@ def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_tim
         # log.info(f'BOM data:{data}')
     barrage_gauges=list(set(gauges_by_state["rest"]) & BARRAGE_GAUGES)
     if barrage_gauges:
-        data += gauge_pull_aq(barrage_gauges, gauges_by_state['BOM'], start_time_user, 
+        data += gauge_pull_aq(barrage_gauges, start_time_user, 
                                end_time_user, var, interval, data_type)
    
     cols = ['DATASOURCEID', 'SITEID', 'SUBJECTID', 'DATETIME', 'VALUE', 'QUALITYCODE']
     flow_data_frame = pd.DataFrame(data=data, columns=cols)
-    # flow_data_frame = pd.concat([flow_data_frame, gauge_pull_bom(gauges_by_state['BOM'], start_time_user, end_time_user, var, interval, data_type)], axis=0, ignore_index=True)
+
     return flow_data_frame
