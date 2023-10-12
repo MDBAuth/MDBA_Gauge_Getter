@@ -515,7 +515,7 @@ def gauge_pull_aq(gauge_numbers: List[str], start_time_user: datetime.date, end_
     extracted_gauge=[]
     for gauge in  gauge_numbers:
         head ="https://water.data.sa.gov.au/Export/BulkExportJson?"
-        times ="DateRange=Custom&StartTime=2023-10-02 00:00:00&EndTime=2023-10-09 00:00:00&TimeZone=9.5"
+        times ="DateRange=Custom&StartTime=" +start_time_user.strftime('%Y-%m-%d') +"&EndTime="+end_time_user.strftime('%Y-%m-%d') +"&TimeZone=9.5"
         dataset = "&Datasets[0].DatasetName=Discharge.Total%20barrage%20flow%40"+gauge
         format = "&ExportFormat=json"
         code = "&Datasets[0].Calculation=Instantaneous&Datasets[0].UnitId=241"
