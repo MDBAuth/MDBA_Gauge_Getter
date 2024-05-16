@@ -536,7 +536,7 @@ def gauge_pull_aq(gauge_numbers: List[str], start_time_user: datetime.date, end_
     return extracted_gauge
 
 def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_time_user: datetime.date,
-               var: str = 'F', interval: str = 'day', data_type: str = 'mean', data_source: str = 'state') -> pd.DataFrame:
+               var: str = 'F', interval: str = 'day', data_type: str = 'mean', data_source: str = 'state', bad_codes:List[str]=[]) -> pd.DataFrame:
     '''
     Given a list of gauge numbers, sorts the list into state groups, and queries relevant
     HTTP endpoints for data, returning as a Pandas dataframe object.
@@ -594,4 +594,7 @@ def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_tim
     cols = ['DATASOURCEID', 'SITEID', 'SUBJECTID', 'DATETIME', 'VALUE', 'QUALITYCODE']
     flow_data_frame = pd.DataFrame(data=data, columns=cols)
 
+    #remove bad quality codes
+
+    flow_data_frame= flow_data_frame[~flow_data_frame['QUALITYCODE'].isin(bad_codes)]
     return flow_data_frame
