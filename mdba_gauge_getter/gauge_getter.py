@@ -595,6 +595,8 @@ def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_tim
     flow_data_frame = pd.DataFrame(data=data, columns=cols)
 
     #remove bad quality codes
-
-    flow_data_frame= flow_data_frame[~flow_data_frame['QUALITYCODE'].isin(bad_codes)]
+    if bad_codes:
+      flow_data_frame= flow_data_frame[~flow_data_frame['QUALITYCODE'].isin(bad_codes)]
+    else:
+      log.info(f'no bad codes')  
     return flow_data_frame
