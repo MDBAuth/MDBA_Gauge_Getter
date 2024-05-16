@@ -536,7 +536,7 @@ def gauge_pull_aq(gauge_numbers: List[str], start_time_user: datetime.date, end_
     return extracted_gauge
 
 def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_time_user: datetime.date,
-               var: str = 'F', interval: str = 'day', data_type: str = 'mean', data_source: str = 'state', bad_codes:List[str]=[]) -> pd.DataFrame:
+               var: str = 'F', interval: str = 'day', data_type: str = 'mean', data_source: str = 'state', bad_codes:List[int]=[]) -> pd.DataFrame:
     '''
     Given a list of gauge numbers, sorts the list into state groups, and queries relevant
     HTTP endpoints for data, returning as a Pandas dataframe object.
