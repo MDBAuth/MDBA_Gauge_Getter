@@ -287,7 +287,7 @@ def call_state_api(state: str, indicative_sites: List[str], start_time: datetime
         log.warning( json.decoder.JSONDecodeError(
             f'Unable to parse response to request to \'{url}\'. The server returned invalid JSON '
             f' data. Got HTTP Response code {r.status_code} and HTTP Response:\n{r.content}',
-            r.content.decode(), 0)
+            r.content.decode(), 0))
 
 
 def extract_data(state: str, data) -> List[List[Any]]:
