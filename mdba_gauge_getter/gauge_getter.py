@@ -273,8 +273,10 @@ def call_state_api(state: str, indicative_sites: List[str], start_time: datetime
     log.debug(f'Sending request to URL \'{req_url}\'')
     r = requests.get(req_url)
     if not r.status_code == 200: 
-        raise requests.HTTPError(f'Request to \'{url}\' failed with HTTP Response code '
+        log.warning(f'Request to \'{url}\' failed with HTTP Response code '
                                  f'{r.status_code} and HTTP Response:\n{r.content}')
+        #raise requests.HTTPError(f'Request to \'{url}\' failed with HTTP Response code '
+        #                         f'{r.status_code} and HTTP Response:\n{r.content}')
     try:
         return json.loads(r.content)
     except json.decoder.JSONDecodeError:
