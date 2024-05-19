@@ -569,12 +569,7 @@ def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_tim
         gauges_by_state['BOM'] = gauges_by_state['NSW']
         nsw += gauge_pull_bom(gauges_by_state['BOM'], start_time_user, 
                                end_time_user, var, interval, data_type)  
-      
-    if not len(nsw) and len(gauges_by_state['NSW']) > 0:
-        log.warn(f'Data not available from NSW API, querying BOM...')
-        gauges_by_state['BOM'] = gauges_by_state['NSW']
-        nsw += gauge_pull_bom(gauges_by_state['BOM'], start_time_user, 
-                               end_time_user, var, interval, data_type)   
+        
     data += nsw
 
     vic = process_gauge_pull(gauges_by_state['VIC'], 'VIC', 'PUBLISH', start_time_user,
