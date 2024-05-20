@@ -561,15 +561,15 @@ def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_tim
 
     # log.info(f'Gauges by state is: {gauges_by_state}')
     data: List[List[List[Any]]] = []
+    
+    nsw =[]
     try:                 
       nsw = process_gauge_pull(gauges_by_state['NSW'], 'NSW', 'CP', start_time_user,
                                end_time_user, var, interval, data_type)
     except:
-        nsw =[]
-        log.warn(f'Data not available from NSW API, querying BOM...')
-        gauges_by_state['BOM'] = gauges_by_state['NSW']
-        nsw += gauge_pull_bom(gauges_by_state['BOM'], start_time_user, 
-                               end_time_user, var, interval, data_type)  
+      log.warn(f'Data not available from NSW API, querying BOM...')
+      gauges_by_state['BOM'] = gauges_by_state['NSW']
+      nsw += gauge_pull_bom(gauges_by_state['BOM'], start_time_user, end_time_user, var, interval, data_type)  
         
     data += nsw
 
