@@ -131,9 +131,12 @@ def init() -> None:
                                 'gauge_owner', 'lat', 'long'], engine='python')
     gauges['State'] = gauges['gauge_owner'].apply(lambda x: x.strip().split(' ', 1)[0])
     gauges = gauges.drop(['lat', 'long', 'gauge_owner'], axis=1)
+    config()
+    
 
 def config(file_path:str = None) -> dict:
     '''load config file'''
+    global config
     if file_path:
         with open(file_path, 'r') as fp:
             config = json.load(fp)
@@ -606,6 +609,10 @@ def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_tim
     flow_data_frame = pd.DataFrame(data=data, columns=cols)
 
     #remove bad quality codes
+    if not bad_codes: #check from query
+        if "bad_codes" in config:
+            bad_codes = config["config"]
+
     if bad_codes:
       flow_data_frame= flow_data_frame[~flow_data_frame['QUALITYCODE'].isin(bad_codes)]
     else:
