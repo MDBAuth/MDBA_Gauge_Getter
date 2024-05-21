@@ -132,6 +132,17 @@ def init() -> None:
     gauges['State'] = gauges['gauge_owner'].apply(lambda x: x.strip().split(' ', 1)[0])
     gauges = gauges.drop(['lat', 'long', 'gauge_owner'], axis=1)
 
+def config(file_path:str = None) -> dict:
+    '''load config file'''
+    if file_path:
+        with open(file_path, 'r') as fp:
+            config = json.load(fp)
+    
+    if not file_path:
+        package_path =os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data/config.json')
+        with open(package_path, 'r') as fp:
+            config = json.load(fp)
+    return config
 
 def get_states_for_gauge(gauge_number: str) -> Set[str]:
     '''
