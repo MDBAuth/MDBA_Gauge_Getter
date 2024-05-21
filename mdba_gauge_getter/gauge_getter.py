@@ -131,12 +131,16 @@ def init() -> None:
                                 'gauge_owner', 'lat', 'long'], engine='python')
     gauges['State'] = gauges['gauge_owner'].apply(lambda x: x.strip().split(' ', 1)[0])
     gauges = gauges.drop(['lat', 'long', 'gauge_owner'], axis=1)
-    config()
     
+    global config
+    try:
+        config()
+    except:
+        log.info(f'no config.json found, pass one in with gg.config("path/to/file")')
 
 def config(file_path:str = None) -> dict:
     '''load config file'''
-    global config
+    
     if file_path:
         with open(file_path, 'r') as fp:
             config = json.load(fp)
