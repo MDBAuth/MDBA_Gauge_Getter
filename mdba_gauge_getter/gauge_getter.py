@@ -554,7 +554,8 @@ def gauge_pull_aq(gauge_numbers: List[str], start_time_user: datetime.date, end_
     return extracted_gauge
 
 def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_time_user: datetime.date,
-               var: str = 'F', interval: str = 'day', data_type: str = 'mean', data_source: str = 'state', bad_codes:List[int]=[]) -> pd.DataFrame:
+               var: str = 'F', interval: str = 'day', data_type: str = 'mean', data_source: str = 'state', 
+               bad_codes:List[int]=[], interp_settings:dict={}) -> pd.DataFrame:
     '''
     Given a list of gauge numbers, sorts the list into state groups, and queries relevant
     HTTP endpoints for data, returning as a Pandas dataframe object.
@@ -620,5 +621,14 @@ def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_tim
     if bad_codes:
       flow_data_frame.loc[flow_data_frame['QUALITYCODE'].isin(bad_codes),["VALUE"]]=None
     else:
-      log.info(f'no bad codes')  
+      log.info(f'no bad codes')
+
+    if not interp_settings  #check from query
+        if "interp_settings" in config:
+           interp_settings = config["interp_settings"] 
+    
+    if interp_settings:
+        flow_data_frame.VALUES = pd.to_numeric(flow_data_frame.VALUE).interpolate(**interp_settings)
+    else:
+        log.info(f'no interpolation')
     return flow_data_frame
