@@ -1,4 +1,5 @@
 import json
+import os
 import datetime
 from io import StringIO
 from decimal import Decimal
@@ -18,7 +19,7 @@ from mocks import MockRequestLib, MockCallStateAPI, \
 logging.basicConfig()
 log = logging.getLogger(__name__[:-3])
 log.setLevel(logging.INFO)
-gauge_getter.getconfig("mockconfig.json")
+gauge_getter.getconfig(os.path.join(os.path.dirname(os.path.abspath(__file__)),"mockconfig.json"))
 
 REAL_REFERENCES = {
     'requests': gauge_getter.requests,
