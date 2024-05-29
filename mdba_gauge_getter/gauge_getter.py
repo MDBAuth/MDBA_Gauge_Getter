@@ -141,6 +141,7 @@ def init() -> None:
 def getconfig(file_path:str = None) -> dict:
     '''load config file'''
     global config
+    config={}
     if file_path:
         with open(file_path, 'r') as fp:
             config = json.load(fp)
@@ -628,7 +629,8 @@ def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_tim
            interp_settings = config["interp_settings"] 
     
     if interp_settings:
-        flow_data_frame.VALUES = pd.to_numeric(flow_data_frame.VALUE).interpolate(**interp_settings)
+        flow_data_frame["VALUES"] = pd.to_numeric(flow_data_frame.VALUE).interpolate(**interp_settings)
+        log.info(f'interpolation: ', interp_settings )
     else:
         log.info(f'no interpolation')
     return flow_data_frame
