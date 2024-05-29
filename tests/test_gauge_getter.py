@@ -18,7 +18,7 @@ from mocks import MockRequestLib, MockCallStateAPI, \
 logging.basicConfig()
 log = logging.getLogger(__name__[:-3])
 log.setLevel(logging.INFO)
-gauge_getter.getconfig()
+gauge_getter.getconfig("mockconfig.json")
 
 REAL_REFERENCES = {
     'requests': gauge_getter.requests,
