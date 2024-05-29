@@ -27,6 +27,7 @@ REAL_REFERENCES = {
     'gauge_data_uri': gauge_getter.gauge_data_uri,
     'gauge_pull': gauge_getter.gauge_pull,
     'process_gauge_pull': gauge_getter.process_gauge_pull,
+    'getconfig': gauge_getter.getconfig,
 
 }
 
