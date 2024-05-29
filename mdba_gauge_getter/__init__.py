@@ -4,4 +4,3 @@ from .gauge_getter import sort_gauges_by_state
 from .gauge_getter import getconfig
 
 from .version import __version__
-getconfig()
