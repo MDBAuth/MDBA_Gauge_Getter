@@ -623,7 +623,7 @@ def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_tim
     else:
       log.info(f'no bad codes')
 
-    if not interp_settings  #check from query
+    if not interp_settings:  #check from query
         if "interp_settings" in config:
            interp_settings = config["interp_settings"] 
     
