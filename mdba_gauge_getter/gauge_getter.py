@@ -630,7 +630,7 @@ def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_tim
     
     if interp_settings:
         log.info(f'interpolation:')
-        flow_data_frame["VALUES"] = pd.to_numeric(flow_data_frame.VALUE).interpolate(**interp_settings)
+        flow_data_frame["VALUE"] = pd.to_numeric(flow_data_frame.VALUE).interpolate(**interp_settings)
         log.info( interp_settings )
     else:
         log.info(f'no interpolation')
