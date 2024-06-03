@@ -556,7 +556,7 @@ def gauge_pull_aq(gauge_numbers: List[str], start_time_user: datetime.date, end_
 
 def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_time_user: datetime.date,
                var: str = 'F', interval: str = 'day', data_type: str = 'mean', data_source: str = 'state', 
-               bad_codes:List[int]=[], interp_settings: dict={}) -> pd.DataFrame:
+               bad_codes:dict={}, interp_settings: dict={}) -> pd.DataFrame:
     '''
     Given a list of gauge numbers, sorts the list into state groups, and queries relevant
     HTTP endpoints for data, returning as a Pandas dataframe object.
@@ -617,10 +617,11 @@ def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_tim
     #remove bad quality codes
     if not bad_codes: #check from query
         if "bad_codes" in config:
-            bad_codes = config["config"]
+            bad_codes = config["bad_codes"]
 
     if bad_codes:
-      flow_data_frame.loc[flow_data_frame['QUALITYCODE'].isin(bad_codes),["VALUE"]]=None
+      all_codes =bad_codes["ALL"]
+      flow_data_frame.loc[flow_data_frame['QUALITYCODE'].isin(all_codes),["VALUE"]]=None
     else:
       log.info(f'no bad codes')
 
