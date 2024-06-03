@@ -620,11 +620,11 @@ def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_tim
             bad_codes = config["bad_codes"]
 
     if bad_codes:
-      all_codes =bad_codes["ALL"]
+      all_codes =bad_codes["ALL"] # first apply bad filter on all data sources
       flow_data_frame.loc[flow_data_frame['QUALITYCODE'].isin(all_codes),["VALUE"]]=None
       
-      for key in passed_keys.keys():
-        flow_data_frame.loc[(flow_data_frame['DATASOURCEID']==key) & (flow_data_frame['QUALITYCODE'].isin(passed_keys[key])),["VALUE"]]=None
+      for key in bad_codes.keys(): # apply bad filter on specific data sources
+        flow_data_frame.loc[(flow_data_frame['DATASOURCEID']==key) & (flow_data_frame['QUALITYCODE'].isin(bad_codes[key])),["VALUE"]]=None
                 
     else:
       log.info(f'no bad codes')
