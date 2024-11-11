@@ -521,10 +521,14 @@ def gauge_pull_bom(gauge_numbers: List[str], start_time_user: datetime.date, end
             collect.append(ts[["DATASOURCEID","SITEID",	"SUBJECTID", "DATETIME", "VALUE", "QUALITYCODE"]])
             log.info(f'BOM Data DF: {collect}')
 
-    output = pd.concat(collect)
-    # log.info(f'BOM Data DF: {output}')
-    output = output.values.tolist()
-    # log.info(f'BOM Data Dict: {output}')
+    if collect:
+      output = pd.concat(collect)
+      # log.info(f'BOM Data DF: {output}')
+      output = output.values.tolist()
+      # log.info(f'BOM Data Dict: {output}')
+    else:
+      output=[]
+
     return output
 
 def gauge_pull_aq(gauge_numbers: List[str], start_time_user: datetime.date, end_time_user: datetime.date,
