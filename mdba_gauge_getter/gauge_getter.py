@@ -560,7 +560,7 @@ def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_tim
     if not len(nsw) and len(gauges_by_state['NSW']) > 0:
         log.warn(f'Data not available from NSW API, querying BOM...')
         gauges_by_state['BOM'] = gauges_by_state['NSW']
-        nsw += gauge_pull_bom(gauges_by_state['BOM'], start_time_user, 
+        #nsw += gauge_pull_bom(gauges_by_state['BOM'], start_time_user, 
                                end_time_user, var, interval, data_type)   
     data += nsw
 
@@ -569,7 +569,7 @@ def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_tim
     if not len(vic) and len(gauges_by_state['VIC']) > 0:
         log.warn(f'Data not available from VIC API, querying BOM...')
         gauges_by_state['BOM'] = gauges_by_state['VIC']
-        vic += gauge_pull_bom(gauges_by_state['BOM'], start_time_user, 
+        #vic += gauge_pull_bom(gauges_by_state['BOM'], start_time_user, 
                                end_time_user, var, interval, data_type)   
     data += vic
 
@@ -578,12 +578,12 @@ def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_tim
     if not len(qld) and len(gauges_by_state['QLD']) > 0:
         log.warn(f'Data not available from QLD API, querying BOM...')
         gauges_by_state['BOM'] = gauges_by_state['QLD']
-        qld += gauge_pull_bom(gauges_by_state['BOM'], start_time_user, 
+        #qld += gauge_pull_bom(gauges_by_state['BOM'], start_time_user, 
                                end_time_user, var, interval, data_type)   
     data += qld
     # log.info(f'State data:{data}')
     if 'BOM' in gauges_by_state:                          
-        data += gauge_pull_bom(gauges_by_state['BOM'], start_time_user, 
+        #data += gauge_pull_bom(gauges_by_state['BOM'], start_time_user, 
                                end_time_user, var, interval, data_type)   
         # log.info(f'BOM data:{data}')
     barrage_gauges=list(set(gauges_by_state["rest"]) & BARRAGE_GAUGES)
