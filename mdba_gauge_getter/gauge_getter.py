@@ -561,7 +561,7 @@ def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_tim
         log.warn(f'Data not available from NSW API, querying BOM...')
         gauges_by_state['BOM'] = gauges_by_state['NSW']
         #nsw += gauge_pull_bom(gauges_by_state['BOM'], start_time_user, 
-                               end_time_user, var, interval, data_type)   
+        #                       end_time_user, var, interval, data_type)   
     data += nsw
 
     vic = process_gauge_pull(gauges_by_state['VIC'], 'VIC', 'PUBLISH', start_time_user,
@@ -570,7 +570,7 @@ def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_tim
         log.warn(f'Data not available from VIC API, querying BOM...')
         gauges_by_state['BOM'] = gauges_by_state['VIC']
         #vic += gauge_pull_bom(gauges_by_state['BOM'], start_time_user, 
-                               end_time_user, var, interval, data_type)   
+        #                       end_time_user, var, interval, data_type)   
     data += vic
 
     qld = process_gauge_pull(gauges_by_state['QLD'], 'QLD', 'AT', start_time_user,
@@ -579,12 +579,12 @@ def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_tim
         log.warn(f'Data not available from QLD API, querying BOM...')
         gauges_by_state['BOM'] = gauges_by_state['QLD']
         #qld += gauge_pull_bom(gauges_by_state['BOM'], start_time_user, 
-                               end_time_user, var, interval, data_type)   
+        #                       end_time_user, var, interval, data_type)   
     data += qld
     # log.info(f'State data:{data}')
     if 'BOM' in gauges_by_state:                          
         #data += gauge_pull_bom(gauges_by_state['BOM'], start_time_user, 
-                               end_time_user, var, interval, data_type)   
+        #                      end_time_user, var, interval, data_type)   
         # log.info(f'BOM data:{data}')
     barrage_gauges=list(set(gauges_by_state["rest"]) & BARRAGE_GAUGES)
     if barrage_gauges:
