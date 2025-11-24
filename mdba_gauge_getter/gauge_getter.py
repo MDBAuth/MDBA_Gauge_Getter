@@ -582,7 +582,7 @@ def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_tim
         #                       end_time_user, var, interval, data_type)   
     data += qld
     # log.info(f'State data:{data}')
-    if 'BOM' in gauges_by_state:                          
+    #if 'BOM' in gauges_by_state:                          
         #data += gauge_pull_bom(gauges_by_state['BOM'], start_time_user, 
         #                      end_time_user, var, interval, data_type)   
         # log.info(f'BOM data:{data}')
