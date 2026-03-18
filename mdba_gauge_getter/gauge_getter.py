@@ -518,10 +518,14 @@ def gauge_pull_aq(gauge_numbers: List[str], start_time_user: datetime.date, end_
         times ="DateRange=Custom&StartTime=" +start_time_user.strftime('%Y-%m-%d') +"&EndTime="+end_time_user.strftime('%Y-%m-%d') +"&TimeZone=9.5"
         if gauge in BARRAGE_GAUGES:
           dataset = "&Datasets[0].DatasetName=Discharge.Total%20barrage%20flow%40"+gauge
-        else:
-           dataset = "&Datasets[0].DatasetName=Discharge.Best%20Available%40"+gauge  
+          code = "&Datasets[0].Calculation=Instantaneous&Datasets[0].UnitId=241"
+        elif var=="L":
+          dataset = "&Datasets[0].DatasetName=Water%20Level.Best%20Available--Continuous%40"+gauge
+          code = ""
+        elif var=="F":
+          dataset = "&Datasets[0].DatasetName=Discharge.Best%20Available--Continuous%40"+gauge
+          code = ""
         format = "&ExportFormat=json"
-        code = "&Datasets[0].Calculation=Instantaneous&Datasets[0].UnitId=241"
 
         url = head+ times + dataset + format +code
         log.info(url)
