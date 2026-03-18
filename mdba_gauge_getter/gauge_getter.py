@@ -589,7 +589,7 @@ def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_tim
         #data += gauge_pull_bom(gauges_by_state['BOM'], start_time_user, 
         #                      end_time_user, var, interval, data_type)   
         # log.info(f'BOM data:{data}')
-    barrage_gauges=list(set(gauges_by_state["rest"]) & BARRAGE_GAUGES ))
+    barrage_gauges=list(set(gauges_by_state["rest"]) & BARRAGE_GAUGES )
     if barrage_gauges:
         data += gauge_pull_aq(barrage_gauges, start_time_user, 
                                end_time_user, var, interval, data_type)
