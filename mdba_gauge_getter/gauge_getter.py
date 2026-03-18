@@ -553,8 +553,8 @@ def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_tim
 
     if data_source.lower() == 'bom':
         gauges_by_state = {'NSW': [], 'QLD': [], 'VIC': [], 'SA': [], 'rest': [],'BOM': gauge_numbers}
-    elif gauges_by_state['SA']:
-        gauges_by_state['BOM'] = gauges_by_state['SA']
+#    elif gauges_by_state['SA']:
+#        gauges_by_state['BOM'] = gauges_by_state['SA']
 
     # log.info(f'Gauges by state is: {gauges_by_state}')
     data: List[List[List[Any]]] = []
@@ -589,7 +589,7 @@ def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_tim
         #data += gauge_pull_bom(gauges_by_state['BOM'], start_time_user, 
         #                      end_time_user, var, interval, data_type)   
         # log.info(f'BOM data:{data}')
-    barrage_gauges=list(set(gauges_by_state["rest"]) & BARRAGE_GAUGES)
+    barrage_gauges=list(set(gauges_by_state["rest"]) & BARRAGE_GAUGES &set(gauges_by_state["SA"]))
     if barrage_gauges:
         data += gauge_pull_aq(barrage_gauges, start_time_user, 
                                end_time_user, var, interval, data_type)
