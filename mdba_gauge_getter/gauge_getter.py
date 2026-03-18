@@ -594,7 +594,7 @@ def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_tim
         data += gauge_pull_aq(barrage_gauges, start_time_user, 
                                end_time_user, var, interval, data_type)
     if set(gauges_by_state["SA"]):
-      data += gauge_pull_aq(set(gauges_by_state["SA"], start_time_user, 
+      data += gauge_pull_aq(gauges_by_state["SA"], start_time_user, 
                                end_time_user, var, interval, data_type)
       
     cols = ['DATASOURCEID', 'SITEID', 'SUBJECTID', 'DATETIME', 'VALUE', 'QUALITYCODE']
