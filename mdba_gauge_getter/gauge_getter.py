@@ -543,7 +543,7 @@ def gauge_pull_aq(gauge_numbers: List[str], start_time_user: datetime.date, end_
         data = x.json()
 
         extracted = []
-        for row in data['Rows']:
+        for row in data['Rows'] if len(data['Rows']) > 0:
           try:
             obsdate = datetime.datetime.strptime(str(row['Timestamp']), '%Y-%m-%dT%H:%M:%S%z').date()
           except ValueError: #sometimes returns milliseconds
