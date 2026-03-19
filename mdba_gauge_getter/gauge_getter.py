@@ -524,6 +524,9 @@ def gauge_pull_aq(gauge_numbers: List[str], start_time_user: datetime.date, end_
           code = ""
         elif var=="F":
           dataset = "&Datasets[0].DatasetName=Discharge.Best%20Available--Continuous%40"+gauge
+          if gauge == "A4260509":
+            dataset = "&Datasets[0].DatasetName=Discharge.Master--Daily%20Read--ML%2Fday%40"+ gauge
+            
           code = ""
         format = "&ExportFormat=json"
 
