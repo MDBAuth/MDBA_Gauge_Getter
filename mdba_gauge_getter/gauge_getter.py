@@ -536,9 +536,13 @@ def gauge_pull_aq(gauge_numbers: List[str], start_time_user: datetime.date, end_
 
         extracted = []
         for row in data['Rows']:
+          try:
             obsdate = datetime.datetime.strptime(str(row['Timestamp']), '%Y-%m-%dT%H:%M:%S%z').date()
-            objRow = ["SA", data["Datasets"][0]["LocationIdentifier"], 'WATER', obsdate, row["Points"][0]["Value"], data["Datasets"][0]["Unit"]]
-            extracted.append(objRow)
+          except ValueError: #sometimes returns milliseconds
+            obsdate = datetime.datetime.strptime(str(row['Timestamp']), '%Y-%m-%dT%H:%M:%S.%f%z').date()
+            
+          objRow = ["SA", data["Datasets"][0]["LocationIdentifier"], 'WATER', obsdate, row["Points"][0]["Value"], data["Datasets"][0]["Unit"]]
+          extracted.append(objRow)
         extracted_gauge.extend(extracted)
     return extracted_gauge
 
