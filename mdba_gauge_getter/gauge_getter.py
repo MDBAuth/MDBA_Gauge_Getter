@@ -511,7 +511,7 @@ def gauge_pull_bom(gauge_numbers: List[str], start_time_user: datetime.date, end
 def gauge_pull_aq(gauge_numbers: List[str], start_time_user: datetime.date, end_time_user: datetime.date,
                var: str = 'F', interval: str = 'day', data_type: str = 'mean') -> pd.DataFrame:
 
-    log.info(f'AQ gaugepull')
+    log.info(f'AQ gaugepull'+ str(gauge_numbers)+var)
     extracted_gauge=[]
     for gauge in  gauge_numbers:
         head ="https://water.data.sa.gov.au/Export/BulkExportJson?"
