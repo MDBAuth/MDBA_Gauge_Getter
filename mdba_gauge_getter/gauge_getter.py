@@ -528,8 +528,10 @@ def gauge_pull_aq(gauge_numbers: List[str], start_time_user: datetime.date, end_
           if gauge == "A4260509":
             dataset = "&Datasets[0].DatasetName=Discharge.Master--Daily%20Read--ML%2Fday%40"+ gauge
         elif var =="LL":
-          dataset= "&&Datasets[0].DatasetName=Lake%20Level.Best%20Available--Continuous%40" + gauge
-          code = ""  
+          dataset= "&Datasets[0].DatasetName=Lake%20Level.Best%20Available--Continuous%40" + gauge
+          code = ""
+          if gauge == "A4261209"
+            dataset ="&Datasets[0].DatasetName=Tide%20Height.Best%20Available--Continuous%40"+ gauge
           
         format = "&ExportFormat=json"
 
