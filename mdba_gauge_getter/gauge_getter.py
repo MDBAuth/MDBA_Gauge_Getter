@@ -527,11 +527,14 @@ def gauge_pull_aq(gauge_numbers: List[str], start_time_user: datetime.date, end_
           code = ""
           if gauge == "A4260509":
             dataset = "&Datasets[0].DatasetName=Discharge.Master--Daily%20Read--ML%2Fday%40"+ gauge
-        elif var =="LL":
+          if gauge=="A4261001":
+            dataset = "&Datasets[0].DatasetName=Discharge.Master--Daily%20Calculation--ML%2Fday%40"+ gauge
+        elif var =="LL" or gauge=="A4260524":
           dataset= "&Datasets[0].DatasetName=Lake%20Level.Best%20Available--Continuous%40" + gauge
           code = ""
           if gauge == "A4261209" or gauge == "A4261165":
             dataset ="&Datasets[0].DatasetName=Tide%20Height.Best%20Available--Continuous%40"+ gauge
+        
           
         format = "&ExportFormat=json"
 
@@ -550,7 +553,7 @@ def gauge_pull_aq(gauge_numbers: List[str], start_time_user: datetime.date, end_
             except ValueError: #sometimes returns milliseconds
               obsdate = datetime.datetime.strptime(str(row['Timestamp']), '%Y-%m-%dT%H:%M:%S.%f%z').date()
               
-            objRow = ["SA", data["Datasets"][0]["LocationIdentifier"], 'WATER', obsdate, row["Points"][0]["Value"], data["Datasets"][0]["Unit"]]
+            objRow = ["SA", data["Datasets"][0]["LocationIdentifier"], 'WATER', obsdate, row["Points"][0]["Value"], 132]
             extracted.append(objRow)
         extracted_gauge.extend(extracted)
     return extracted_gauge
