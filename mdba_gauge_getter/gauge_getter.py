@@ -525,7 +525,7 @@ def gauge_pull_aq(gauge_numbers: List[str], start_time_user: datetime.date, end_
         elif var=="F":
           dataset = "&Datasets[0].DatasetName=Discharge.Best%20Available--Continuous%40"+gauge
           code = ""
-          if gauge == "A4260509":
+          if gauge in ["A4260509","A4260505"]:
             dataset = "&Datasets[0].DatasetName=Discharge.Master--Daily%20Read--ML%2Fday%40"+ gauge
           if gauge=="A4261001":
             dataset = "&Datasets[0].DatasetName=Discharge.Master--Daily%20Calculation--ML%2Fday%40"+ gauge
