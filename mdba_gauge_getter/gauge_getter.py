@@ -510,7 +510,7 @@ def gauge_pull_bom(gauge_numbers: List[str], start_time_user: datetime.date, end
 
 def gauge_pull_aq(gauge_numbers: List[str], start_time_user: datetime.date, end_time_user: datetime.date,
                var: str = 'F', interval: str = 'day', data_type: str = 'mean') -> pd.DataFrame:
-
+    SALL=['A4260524', 'A4260574', 'A4260633', 'A4260575', 'A4261165', 'A4261133', 'A4260527', 'A4261209']
     log.info(f'AQ gaugepull'+ str(gauge_numbers)+var)
     extracted_gauge=[]
     for gauge in  gauge_numbers:
@@ -519,20 +519,20 @@ def gauge_pull_aq(gauge_numbers: List[str], start_time_user: datetime.date, end_
         if gauge in BARRAGE_GAUGES:
           dataset = "&Datasets[0].DatasetName=Discharge.Total%20barrage%20flow%40"+gauge
           code = "&Datasets[0].Calculation=Instantaneous&Datasets[0].UnitId=241"
-        elif var=="L":
+        elif var=="L" and gauge not in SALL:
           dataset = "&Datasets[0].DatasetName=Water%20Level.Best%20Available--Continuous%40"+gauge
           code = ""
         elif var=="F":
           dataset = "&Datasets[0].DatasetName=Discharge.Best%20Available--Continuous%40"+gauge
           code = ""
-          if gauge in ["A4260509","A4260505"]:
+          if gauge in ["A4260509","A4260505", "A4260507"]:
             dataset = "&Datasets[0].DatasetName=Discharge.Master--Daily%20Read--ML%2Fday%40"+ gauge
-          if gauge=="A4261001":
+          if gauge in ["A4261001"]:
             dataset = "&Datasets[0].DatasetName=Discharge.Master--Daily%20Calculation--ML%2Fday%40"+ gauge
-        elif var =="LL" or gauge=="A4260524":
+        elif var =="LL" or gauge in SALL:
           dataset= "&Datasets[0].DatasetName=Lake%20Level.Best%20Available--Continuous%40" + gauge
           code = ""
-          if gauge == "A4261209" or gauge == "A4261165":
+          if gauge in ["A4261209", "A4261165", "A4260633"]:
             dataset ="&Datasets[0].DatasetName=Tide%20Height.Best%20Available--Continuous%40"+ gauge
         
           
