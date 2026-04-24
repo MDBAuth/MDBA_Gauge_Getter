@@ -619,5 +619,6 @@ def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_tim
       
     cols = ['DATASOURCEID', 'SITEID', 'SUBJECTID', 'DATETIME', 'VALUE', 'QUALITYCODE']
     flow_data_frame = pd.DataFrame(data=data, columns=cols)
+    flow_data_frame['VALUE'] = pd.to_numeric(flow_data_frame['VALUE'], errors='coerce')
 
     return flow_data_frame
