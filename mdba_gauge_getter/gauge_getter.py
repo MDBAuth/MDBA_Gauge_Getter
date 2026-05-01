@@ -517,7 +517,7 @@ def gauge_pull_aq(gauge_numbers: List[str], start_time_user: datetime.date, end_
         head ="https://water.data.sa.gov.au/Export/BulkExportJson?"
         times ="DateRange=Custom&StartTime=" +start_time_user.strftime('%Y-%m-%d') +"&EndTime="+end_time_user.strftime('%Y-%m-%d') +"&TimeZone=9.5"
         if gauge in BARRAGE_GAUGES:
-          dataset = "&Datasets[0].DatasetName=Discharge.Total%20barrage%20flow%40"+gauge
+          dataset = "&IntervalPoints=Daily&Datasets[0].DatasetName=Discharge.Total%20barrage%20flow%40"+gauge
           code = "&Datasets[0].Calculation=Instantaneous&Datasets[0].UnitId=241"
         elif var=="L" and gauge not in SALL:
           dataset = "&Datasets[0].DatasetName=Water%20Level.Best%20Available--Continuous%40"+gauge
