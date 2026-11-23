@@ -77,3 +77,13 @@ def test_pull_max_and_level_has_no_unit_conversion(fake_portal):
 def test_bad_args():
     with pytest.raises(ValueError):
         gg.gauge_pull_sa(['A1'], datetime.date(2024, 1, 1), datetime.date(2024, 1, 2), 'ZZ')
+
+
+def test_skips_gauges_without_dataset(fake_portal):
+    rows = gg.gauge_pull_sa(['A9', 'A1'], datetime.date(2024, 1, 1), datetime.date(2024, 1, 2), 'F')
+    assert {r[1] for r in rows} == {'A1'}
+
+
+def test_all_gauges_missing_raises():
+    with pytest.raises(ValueError):
+        gg.gauge_pull_sa(['A9'], datetime.date(2024, 1, 1), datetime.date(2024, 1, 2), 'F')
