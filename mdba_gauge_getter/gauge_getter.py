@@ -438,7 +438,7 @@ SA_VAR_PARAMS = {
     'F':  {'params': ['Discharge'], 'unit_id': 241},                                  # ML/day
     'L':  {'params': ['Water Level', 'Tide Height'], 'unit_id': None},
     'LL': {'params': ['Lake Level', 'Water Level'], 'unit_id': None},
-    'SV': {'params': ['Storage Volume', 'Volume'], 'unit_id': None},
+    'SV': {'params': ['Total Storage'], 'unit_id': None},                      # Total Lake/Storage Volume
 }
 SA_RESAMPLE = {'hour': 'h', 'day': 'D', 'month': 'MS', 'year': 'YS'}
 
