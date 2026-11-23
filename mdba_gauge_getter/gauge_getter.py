@@ -1,4 +1,6 @@
 import os
+import io
+import re
 import json
 import logging
 import datetime
@@ -425,96 +427,165 @@ def gauge_pull_aq(gauge_numbers: List[str], start_time_user: datetime.date, end_
             extracted.append(objRow)
         extracted_gauge.extend(extracted)
     return extracted_gauge
-def gauge_pull_sa(
-    gauge_numbers: List[str],
-    start_time_user: datetime.date,
-    end_time_user: datetime.date,
-    var: str = 'F',
-    interval: str = 'day',
-    data_type: str = 'mean'
-) -> pd.DataFrame:
+SA_PORTAL = 'https://water.data.sa.gov.au'
+SA_TIMEOUT = 60
+SA_GAUGE_RE = re.compile(r'^A\d{6,7}$')  # SA gauge ids, e.g. A4260501
 
-    extracted_gauge = []
+# For each `var`, the AQUARIUS parameter names to look for (in priority order), the
+# unit id to ask the portal to convert to (None = leave as stored), and the pandas
+# resample code for each `interval`.
+SA_VAR_PARAMS = {
+    'F':  {'params': ['Discharge'], 'unit_id': 241},                                  # ML/day
+    'L':  {'params': ['Water Level', 'Tide Height'], 'unit_id': None},
+    'LL': {'params': ['Lake Level', 'Water Level'], 'unit_id': None},
+    'SV': {'params': ['Storage Volume', 'Volume'], 'unit_id': None},
+}
+SA_RESAMPLE = {'hour': 'h', 'day': 'D', 'month': 'MS', 'year': 'YS'}
 
+_sa_session: Optional[requests.Session] = None
+_sa_params: Optional[pd.DataFrame] = None
+_sa_datasets: Dict[str, pd.DataFrame] = {}   # cache: param_id -> dataset list
+
+
+def _sa_get_session() -> requests.Session:
+    global _sa_session
+    if _sa_session is None:
+        _sa_session = requests.Session()
+    return _sa_session
+
+
+def sa_fetch_params() -> pd.DataFrame:
+    '''Parameters (Discharge, Water Level, ...) the SA portal offers, with their ids.'''
+    global _sa_params
+    if _sa_params is None:
+        r = _sa_get_session().post(f'{SA_PORTAL}/Data/List/', timeout=SA_TIMEOUT)
+        r.raise_for_status()
+        rows = re.findall(r'<option[^>]*value="(\d+)"[^>]*data-code="([^"]*)"[^>]*>([^<]*)<', r.text)
+        rows += [(i, c, d) for c, i, d in
+                 re.findall(r'<option[^>]*data-code="([^"]*)"[^>]*value="(\d+)"[^>]*>([^<]*)<', r.text)]
+        _sa_params = pd.DataFrame(rows, columns=['param_id', 'param_name', 'param_desc']).drop_duplicates()
+    return _sa_params
+
+
+def sa_fetch_datasets(param_id: str) -> pd.DataFrame:
+    '''Every dataset (time series) on the SA portal for one parameter. Cached per session.'''
+    if param_id in _sa_datasets:
+        return _sa_datasets[param_id]
+    results: List[Dict[str, Any]] = []
+    page = 1
+    while True:
+        query = {'page': page, 'pageSize': 5000, 'parameters[0]': param_id}
+        r = _sa_get_session().post(f'{SA_PORTAL}/Data/Data_List', data=query, timeout=SA_TIMEOUT)
+        r.raise_for_status()
+        body = r.json()
+        results += body['Data']
+        if not body['Data'] or len(results) >= body['Total']:
+            break
+        page += 1
+    df = pd.DataFrame(results, columns=['LocationIdentifier', 'DatasetIdentifier'] if not results else None)
+    _sa_datasets[param_id] = df
+    return df
+
+
+def _sa_rank(dataset_id: str, interval: str) -> int:
+    '''Lower is better. Prefer curated series; match "Daily" series to daily requests.'''
+    label = dataset_id.split('@')[0].lower()
+    score = 10
+    if 'master' in label:
+        score -= 3
+    if 'best available' in label or 'total' in label:
+        score -= 2
+    if interval in ('day', 'month', 'year') and 'daily' in label:
+        score -= 2
+    if interval == 'hour' and 'continuous' in label:
+        score -= 2
+    if 'ml/day' in label:
+        score -= 1
+    if any(w in label for w in ('raw', 'telemetry', 'unverified', 'provisional')):
+        score += 3
+    return score
+
+
+def sa_find_dataset(gauge: str, var: str, interval: str = 'day') -> str:
+    '''
+    Finds the best dataset id (`Param.Label@Gauge`) for a gauge and var by asking the portal
+    what the gauge has, rather than relying on a hand-maintained table. `SA_DATASETS` entries
+    still act as explicit overrides.
+    '''
+    override = SA_DATASETS.get(gauge, {}).get(var)
+    if override:
+        return f'{override}@{gauge}'
+    if var not in SA_VAR_PARAMS:
+        raise ValueError(f"Unsupported SA variable '{var}'. Use one of {sorted(SA_VAR_PARAMS)}")
+    params = sa_fetch_params()
+    for wanted in SA_VAR_PARAMS[var]['params']:
+        match = params[params['param_name'].str.lower() == wanted.lower()]
+        if match.empty:
+            match = params[params['param_desc'].str.lower().str.contains(wanted.lower(), na=False)]
+        for pid in match['param_id']:
+            ds = sa_fetch_datasets(str(pid))
+            ds = ds[ds['LocationIdentifier'] == gauge]
+            if not ds.empty:
+                return sorted(ds['DatasetIdentifier'], key=lambda d: (_sa_rank(d, interval), d))[0]
+    raise ValueError(f"SA gauge {gauge} has no '{var}' dataset on {SA_PORTAL}")
+
+
+def _sa_parse_csv(text: str) -> pd.DataFrame:
+    '''Parses an AQUARIUS CSV export, locating the header row instead of assuming its position.'''
+    lines = text.splitlines()
+    header = next((i for i, l in enumerate(lines) if l.startswith('Timestamp')), None)
+    if header is None:
+        raise ValueError(f'Unexpected SA portal response (no Timestamp header): {text[:200]!r}')
+    df = pd.read_csv(io.StringIO('\n'.join(lines[header:])))
+    df = df.iloc[:, :3]
+    df.columns = ['Timestamp', 'Value', 'Grade Code'][:df.shape[1]]
+    if 'Grade Code' not in df:
+        df['Grade Code'] = None
+    df['Timestamp'] = pd.to_datetime(df['Timestamp'], errors='coerce')
+    df['Value'] = pd.to_numeric(df['Value'], errors='coerce')
+    return df.dropna(subset=['Timestamp', 'Value'])
+
+
+def gauge_pull_sa(gauge_numbers: List[str], start_time_user: datetime.date,
+                  end_time_user: datetime.date, var: str = 'F', interval: str = 'day',
+                  data_type: str = 'mean') -> List[List[Any]]:
+    '''
+    Pulls any SA gauge from water.data.sa.gov.au. The dataset is discovered from the portal
+    for each gauge, and the result is aggregated to `interval` with `data_type`.
+    Returns rows of [state, gauge, 'WATER', date, value, quality].
+    '''
+    if var not in SA_VAR_PARAMS:
+        raise ValueError(f"Unsupported SA variable '{var}'. Use one of {sorted(SA_VAR_PARAMS)}")
+    if interval not in SA_RESAMPLE:
+        raise ValueError(f"Unsupported interval '{interval}'")
+    if data_type not in ('mean', 'min', 'max'):
+        raise ValueError(f"Unsupported data_type '{data_type}'")
+
+    rows: List[List[Any]] = []
     for gauge in gauge_numbers:
-
-        if gauge not in SA_DATASETS:
-            raise ValueError(
-                f"No SA dataset configured for gauge {gauge}"
-            )
-
-        if var not in SA_DATASETS[gauge]:
-            raise ValueError(
-                f"No SA dataset configured for gauge {gauge} var {var}"
-            )
-
-        dataset = (
-            SA_DATASETS[gauge][var]
-            + "@"
-            + gauge
-        )
-
-        dataset = quote(dataset)
-
-        if var == "F":
-            unit_id = 241
-
-        elif var == "L":
-            unit_id = 82
-
-        else:
-            raise ValueError(
-                f"Unsupported SA variable {var}"
-            )
-
-        url = (
-            "https://water.data.sa.gov.au/Export/DataSet"
-            f"?DataSet={dataset}"
-            "&Calendar=CALENDARYEAR"
-            f"&StartTime={start_time_user:%Y-%m-%d}"
-            f"&EndTime={end_time_user:%Y-%m-%d}"
-            "&DateRange=Custom"
-            f"&UnitID={unit_id}"
-            "&Conversion=Instantaneous"
-            "&IntervalPoints=PointsAsRecorded"
-            "&ApprovalLevels=False"
-            "&Qualifiers=False"
-            "&Step=1"
-            "&ExportFormat=csv"
-            "&Compressed=false"
-            "&RoundData=True"
-            "&GradeCodes=True"
-            "&InterpolationTypes=False"
-            "&Timezone=9.5"
-        )
-
-        df = pd.read_csv(
-            url,
-            skiprows=3
-        )
-
-        df = df.iloc[1:].reset_index(drop=True)
-
-        df.columns = [
-            "Timestamp",
-            "Value",
-            "Grade Code"
-        ]
-
-        for _, row in df.iterrows():
-
-            objRow = [
-                "SA",
-                gauge,
-                "WATER",
-                pd.to_datetime(row["Timestamp"]),
-                float(row["Value"]),
-                row["Grade Code"]
-            ]
-
-            extracted_gauge.append(objRow)
-
-    return extracted_gauge
+        dataset = sa_find_dataset(gauge, var, interval)
+        query = {
+            'DataSet': dataset, 'Calendar': 'CALENDARYEAR', 'DateRange': 'Custom',
+            'StartTime': f'{start_time_user:%Y-%m-%d}', 'EndTime': f'{end_time_user:%Y-%m-%d}',
+            'Conversion': 'Instantaneous', 'IntervalPoints': 'PointsAsRecorded',
+            'ApprovalLevels': 'False', 'Qualifiers': 'False', 'Step': '1',
+            'ExportFormat': 'csv', 'Compressed': 'false', 'RoundData': 'True',
+            'GradeCodes': 'True', 'InterpolationTypes': 'False', 'Timezone': '9.5',
+        }
+        unit_id = SA_VAR_PARAMS[var]['unit_id']
+        if unit_id:
+            query['UnitID'] = unit_id
+        r = _sa_get_session().get(f'{SA_PORTAL}/Export/DataSet', params=query, timeout=SA_TIMEOUT)
+        r.raise_for_status()
+        df = _sa_parse_csv(r.text)
+        if df.empty:
+            log.warning(f'No SA data returned for {gauge} ({dataset})')
+            continue
+        grade = df['Grade Code'].iloc[-1]
+        agg = df.set_index('Timestamp')['Value'].resample(SA_RESAMPLE[interval]).agg(data_type).dropna()
+        for ts, val in agg.items():
+            rows.append(['SA', gauge, 'WATER', ts.date(), float(val), grade])
+    return rows
 
 
 def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_time_user: datetime.date,
@@ -566,10 +637,10 @@ def gauge_pull(gauge_numbers: List[str], start_time_user: datetime.date, end_tim
         log.warning('No QLD data returned')
     data += qld
 
-    barrage_gauges = list(set(gauges_by_state['rest']) & BARRAGE_GAUGES)
-    if barrage_gauges:
-        data += gauge_pull_aq(barrage_gauges, start_time_user,
-                              end_time_user, var, interval, data_type)
+    # Gauges missing from the CSV (e.g. the barrages) but with an SA-style id go to the SA portal
+    extra_sa = [g for g in gauges_by_state['rest'] if SA_GAUGE_RE.match(str(g))]
+    if extra_sa:
+        data += gauge_pull_sa(extra_sa, start_time_user, end_time_user, var, interval, data_type)
 
     cols = ['DATASOURCEID', 'SITEID', 'SUBJECTID', 'DATETIME', 'VALUE', 'QUALITYCODE']
     return pd.DataFrame(data=data, columns=cols)
