@@ -562,8 +562,16 @@ def gauge_pull_sa(gauge_numbers: List[str], start_time_user: datetime.date,
         raise ValueError(f"Unsupported data_type '{data_type}'")
 
     rows: List[List[Any]] = []
+    skipped: List[str] = []
     for gauge in gauge_numbers:
-        dataset = sa_find_dataset(gauge, var, interval)
+        try:
+            dataset = sa_find_dataset(gauge, var, interval)
+        except ValueError as err:
+            if 'has no' not in str(err):
+                raise
+            log.warning(f'Skipping {gauge}: {err}')
+            skipped.append(gauge)
+            continue
         query = {
             'DataSet': dataset, 'Calendar': 'CALENDARYEAR', 'DateRange': 'Custom',
             'StartTime': f'{start_time_user:%Y-%m-%d}', 'EndTime': f'{end_time_user:%Y-%m-%d}',
@@ -585,6 +593,8 @@ def gauge_pull_sa(gauge_numbers: List[str], start_time_user: datetime.date,
         agg = df.set_index('Timestamp')['Value'].resample(SA_RESAMPLE[interval]).agg(data_type).dropna()
         for ts, val in agg.items():
             rows.append(['SA', gauge, 'WATER', ts.date(), float(val), grade])
+    if skipped and len(skipped) == len(gauge_numbers):
+        raise ValueError(f"None of the SA gauges {skipped} have a '{var}' dataset on {SA_PORTAL}")
     return rows
 
 
